@@ -2635,14 +2635,16 @@ class system_{
 			&& isOInst(this.get_psa(idx),'ps');
 		let RUN = true;
 		let ps, rq, fidx, nidx;
+		let S01;
 		switch(RUN){
 			case true:
 				ps = this.get_psa(idx);
 				rq = this.#rq;
 				fidx = rq[0].indexOf(idx);
 				nidx = rq[0].indexOf(null);
-				switch(true){
-					case(fidx === -1 && nidx > -1 && isOInst(ps,'ps')):
+				S01 = fidx === -1 && nidx > -1 && isOInst(ps,'ps')
+				switch(S01){
+					case true:
 						ps.set_pend(true);
 						//console.log('system_.#RTRQ()\'s data');
 						//console.log(ps, nidx);
@@ -2665,17 +2667,19 @@ class system_{
 				RUN = false;
 			break;
 		}
-		let rqidx, nidx;
+		let rqidx, nidx, S01, S02;
 		switch(RUN){
 			case true:
 				rqidx = rq[0].indexOf(idx);
 				nidx = rq[0].indexOf(null);
+				S01 = rqidx === -1 && nidx > -1;
+				S02 = rqidx > -1;
 				switch(true){
-					case(rqidx === -1 && nidx > -1):
+					case S01:
 						this.#rq[0][nidx] = idx;
 						this.#rq[1][nidx] = count;
 					break;
-					case(rqidx > -1):
+					case S02:
 						this.#rq[1][rqidx] = count;
 					break;
 				}
@@ -2717,20 +2721,22 @@ class system_{
 			break;
 		}
 		//console.log('DATACHK = ' + DATACHK);
-		let i,j,k;
+		let i,j,k,S01,S02;
 		switch(RUN){
 			case true:
 				for(i = 0;i < rq[0].length;i++){
 					j = Number.isFinite(rq[1][i]) && isOInst(psa[rq[0][i]],'ps')
 					&& psa[rq[0][i]].get_pend();
 					k = rq[1][i] - 1;
+					S01 = j && k > 0;
+					S02 = j;
 					switch(true){
 						//count > 0
-						case(j && k > 0):
+						case S01:
 							this.#SRQ(i,k);
 						break;
 						//count === 0
-						case(j):
+						case S02:
 							this.#RRQ(i);
 						break;
 					}
@@ -2751,8 +2757,23 @@ class system_{
 			break;
 		}
 		//console.log('DATACHK = ' + DATACHK);
+		let ps, fl, fidx;
 		switch(RUN){
 			case true:
+				ps = this.get_psa(idx);
+				fl = this.get_foc_list();
+				fidx = fl[1].indexOf(ps.get_fuid());
+				switch(fidx){
+					case -1:
+						//DO NOT ANYTHINGS
+					break;
+					default:
+						//system_.#foc_list[0].splice(fidx,1);
+						//system_.#foc_list[1].splice(fidx,1);
+						fl[0].splice(fidx,1);
+						fl[1].splice(fidx,1);
+					break;
+				}
 				this.set_psa(idx,null);
 				//this.#psa[idx] = null;
 				this.set_psabm(idx,0);
@@ -3154,26 +3175,29 @@ class system_{
 		}
 		//console.log(idx, x, y, RUN);
 		let psa, c, dx, dy, d2;
+		let S01, S02;
 		switch(RUN){
 			case true:
 				//console.log('CDTJ Process Start');
 				psa = this.get_psa(idx);
 				//console.log('psa[idx] = ' + psa);
-				switch(isOInst(psa,'ps')){
+				S01 = isOInst(psa,'ps');
+				switch(S01){
 					case true:
 						//console.log('psa[idx] is PointerSlot.');
 						c = psa.get_curr_pos();
 					break;
 				}
 				let threshold;
-				switch(isobj(c)){
+				S02 = isobj(c);
+				switch(S02){
 					case true:
 						//console.log('previous position is exists');
 						dx = Math.abs(c[0] - x);
 						dy = Math.abs(c[1] - y);
 						d2 = (dx * dx) + (dy * dy);
 						const D2 = 4;
-						threshold = d2 >= D2
+						threshold = d2 >= D2;
 						switch(threshold){
 							case true:
 								//console.log('Passed Distance Threshold Process. d2 : ' + d2);
@@ -3251,6 +3275,7 @@ class system_{
 		let TMOVEJ, TNMOVE, TNDRAG, TDOWN, TDRAGBS, TMOVE, TOVER, TBMLIDX;
 		//One Of PointerSlot ; Is Not Array
 		let PS, PSCHK, UL;
+		let S01,S02,S03,S04,S05,S06,S07,S08,S09,S10;
 		switch(isbool(dauev)){
 			case false:
 				dauev = false;
@@ -3261,12 +3286,17 @@ class system_{
 			case true:
 				index1 = this.get_psa_empty_idx();
 				index2 = this.#is_in_psa(id);
+				S01 = index2 > -1;
+				S02 = index1 > -1;
 				switch(true){
-					case(index2 > -1):
+					case S01:
 						tidx = index2;
 					break;
-					case(index1 > -1):
+					case S02:
 						tidx = index1;
+					break;
+					default:
+						tidx = -1;
 					break;
 				}
 				bm = this.get_psabm(tidx);
@@ -3316,20 +3346,24 @@ class system_{
 						PMDRAGBS = PMNMOVE && PMDOWN && iscdtj;
 						//jugde of pointer-move event bit mask setting
 						PMMOVEBS = PMNMOVE && iscdtj;
+						S03 = P && PMDRAGBS;
+						S04 = M && PMDRAGBS;
+						S05 = P && PMMOVEBS;
+						S06 = M && PMMOVEBS;
 						switch(true){
-							case(P && PMDRAGBS):
+							case S03:
 								//console.log('pointer drag event');
 								this.set_psabm(tidx,system_.pdrag_);
 							break;
-							case(M && PMDRAGBS):
+							case S04:
 								//console.log('mouse drag event');
 								this.set_psabm(tidx,system_.mdrag_);
 							break;
-							case(P && PMMOVEBS):
+							case S05:
 								//console.log('pointer move event');
 								this.set_psabm(tidx,system_.pmove_);
 							break;
-							case(M && PMMOVEBS):
+							case S06:
 								//console.log('mouse move event');
 								this.set_psabm(tidx,system_.mmove_);
 							break;
@@ -3342,22 +3376,26 @@ class system_{
 							break;
 						}
 						//console.log(PSCHK,PMMOVE,mel,!UL);
+						S07 = !PSCHK && P;
+						S08 = !PSCHK && M;
+						S09 = PSCHK && PMMOVE && !mel && !UL;
+						S10 = PSCHK && PMMOVE && mel && !UL;
 						switch(true){
-							case(!PSCHK && P):
+							case S07:
 								//console.log(id,x,y);
 								this.set_psa(tidx, new PSlot(id, x, y, 'p'));
 								//this.#psa[tidx] = new PSlot(id, x, y, 'p');
 							break;
-							case(!PSCHK && M):
+							case S08:
 								//console.log(id,x,y);
 								this.set_psa(tidx, new PSlot(id, x, y, 'm'));
 								//this.#psa[tidx] = new PSlot(id, x, y, 'p');
 							break;
-							case(PSCHK && PMMOVE && !mel && !UL):
+							case S09:
 								this.update_psa(tidx, x, y);
 								//this.#psa[tidx].update(x, y);
 							break;
-							case(PSCHK && PMMOVE && mel && !UL):
+							case S10:
 								PS.set_curr_pos(x, y);
 								//console.log(PS.get_curr_pos());
 								//this.#psa[tidx].update(x, y);
@@ -3374,11 +3412,13 @@ class system_{
 									id = cts[i].identifier;
 									index1 = this.get_psa_empty_idx();
 									index2 = this.#is_in_psa(id);
+									S01 = index2 > -1;
+									S02 = index1 > -1;
 									switch(true){
-										case(index2 > -1):
+										case S01:
 											tidx = index2;
 										break;
-										case(index1 > -1):
+										case S02:
 											tidx = index1;
 										break;
 										default:
@@ -3419,16 +3459,19 @@ class system_{
 													UL = PS.get_ulock();
 												break;
 											}
+											S03 = !PSCHK && T;
+											S04 = PSCHK && TMOVE && iscdtj && !mel && !UL;
+											S05 = PSCHK && TMOVE && iscdtj && mel && !UL;
 											switch(true){
-												case(!PSCHK && T):
+												case S03:
 													//console.log(id,x,y);
 													this.set_psa(tidx, new PSlot(id, x, y, 't'));
 												break;
-												case(PSCHK && TMOVE && iscdtj && !mel && !UL):
+												case S04:
 													this.update_psa(tidx, x, y);
 													//this.#psa[tidx].update(x, y);
 												break;
-												case(PSCHK && TMOVE && iscdtj && mel && !UL):
+												case S05:
 													this.get_psa(tidx).set_curr_pos(x, y);
 													//this.#psa[tidx].update(x, y);
 												break;
@@ -3444,14 +3487,20 @@ class system_{
 				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y;
 				//console.log('dauev = ' + dauev);
 				this.set_stamp();
+				let S11,S12,S13,S14,S15,S16,S17,S18,S19,S20;
+				let S21,S22,S23;
+				S11 = P && dauev;
+				S14 = T && dauev;
+				S21 = M && dauev;
 				switch(true){
-					case(P && dauev):
+					case S11:
+						S12 = tidx === -1;
+						S13 = tidx > -1;
 						switch(true){
-							case(tidx === -1):
+							case S12:
 								RUN2 = false;
 							break;
-							case(tidx > -1):
-								PS = this.get_psa(tidx);
+							case S13:
 								switch(true){
 									case down:
 										//console.log('pointerDown event bit set in now!')
@@ -3476,21 +3525,24 @@ class system_{
 							break;
 						}
 					break;
-					case(T && dauev):
+					case S14:
 						cts = e.changedTouches;
 						tcnt = 0;
-						switch(Array.isArray(cts)){
+						S15 = Array.isArray(cts)
+						switch(S15){
 							case true:
 								for(i = 0;i < cts.length;i++){
 									id = cts[i].identifier;
 									index1 = this.get_psa_empty_idx();
 									index2 = this.#is_in_psa(id);
+									S16 = index2 > -1;
+									S17 = index1 > -1;
 									switch(true){
-										case(index2 > -1):
+										case S16:
 											tidx = index2;
 											tcnt++;
 										break;
-										case(index1 > -1):
+										case S17:
 											tidx = index1;
 											tcnt++;
 										break;
@@ -3498,31 +3550,37 @@ class system_{
 											tidx = -1;
 										break;
 									}
-									PS = this.get_psa(tidx);
+									S18 = tidx > -1 && cancel;
+									S19 = tidx > -1 && down;
+									S20 = tidx > -1 && up;
 									switch(true){
-										case(tidx > -1 && down):
+										case S18:
+											this.set_psabm(tidx,system_.tcancel_);
+										break;
+										case S19:
 											this.set_psabm(tidx,system_.tdown_);
 										break;
-										case(tidx > -1 && (up || cancel)):
+										case S20:
 											this.set_psabm(tidx,system_.tup_);
 										break;
 									}
 								}
 							break;
 						}
-						switch(true){
-							case(tcnt === 0):
+						switch(tcnt){
+							case 0:
 								RUN2 = false;
 							break;
 						}
 					break;
-					case(M && dauev):
+					case S21:
+						S22 = index1 === -1 && index2 === -1;
+						S23 = index1 > -1 || index2 > -1;
 						switch(true){
-							case(index1 === -1 && index2 === -1):
+							case S22:
 								RUN2 = false;
 							break;
-							case(index1 > -1 || index2 > -1):
-								PS = this.get_psa(tidx);
+							case S23:
 								switch(true){
 									case down:
 										this.set_psabm(tidx,system_.mdown_);
@@ -3549,7 +3607,8 @@ class system_{
 				}
 			break;
 		}
-		let S01 = RUN && RUN2 && dauev;
+		let S30 = RUN && RUN2 && dauev;
+		let S31,S32,S33,S34,S35,S36,S37,S38,S39;
 		//console.log('RUN = ' + RUN + ', RUN2 = ' + RUN2);
 		let str, s1;
 		let ps1, ts1, ms1;
@@ -3561,7 +3620,7 @@ class system_{
 		//console.log('is pointer event ? ' + P);
 		//console.log('is touch event ? ' + T);
 		//console.log('is mouse event ? ' + M);
-		switch(S01){
+		switch(S30){
 			case true:
 				//console.log('Event Handling Part')
 				//console.log('x = ' + x + ', y = ' + y);
@@ -3592,17 +3651,20 @@ class system_{
 								pnmove = p2 || p4 || p5 || p6 || p7 || p8;
 								PS = this.get_psa(tidx);
 								PSCHK = isOInst(PS,'ps');
+								S31 = !PSCHK;
+								S32 = PSCHK && pnmove;
 								switch(true){
-									case !PSCHK:
+									case S31:
 										//console.log(id,x,y);
 										this.set_psa(tidx, new PSlot(id, x, y, 'p'));
 										//this.#psa[tidx] = new PSlot(id, x, y, 'p');
 									break;
-									case (PSCHK && pnmove):
+									case S32:
 										this.update_psa(tidx, x, y);
 										//this.#psa[tidx].update(x, y);
 									break;
 								}
+								S33 = p4 && iscdtj;
 								switch(true){
 									//cancel event
 									case p6:
@@ -3640,7 +3702,7 @@ class system_{
 										//console.log('p1 : ',bm);
 									//break;
 									//over event
-									case(p4 && iscdtj):
+									case S33:
 										//DO NOT ANYTHING IN NOW
 										//console.log('pointer over event');
 										this.#handle_event(tidx,1);
@@ -3665,17 +3727,20 @@ class system_{
 						ts1 = isoffset === false && TSTRVAL && TNMOVE;
 						switch(true){
 							case ts1:
-								switch(Array.isArray(cts)){
+								S34 = Array.isArray(cts)
+								switch(S34){
 									case true:
 										for(i = 0;i < cts.length;i++){
 											index1 = this.get_psa_empty_idx();
 											id = cts[i].identifier;
 											index2 = this.#is_in_psa(id);
+											S35 = index2 > -1;
+											S36 = index1 > -1;
 											switch(true){
-												case(index2 > -1):
+												case S35:
 													tidx = index2;
 												break;
-												case(index1 > -1):
+												case S36:
 													tidx = index1;
 												break;
 												default:
@@ -3703,8 +3768,9 @@ class system_{
 															//this.#psa[tidx] = new PSlot(id, x, y, 't');
 														break;
 														default:
+															S37 = (t1 && iscdtj) || t2 || t45;
 															switch(true){
-																case((t1 && iscdtj) || t2 || t45):
+																case S37:
 																	this.update_psa(tidx, x, y);
 																break;
 															}
@@ -3757,12 +3823,14 @@ class system_{
 								m7 = (bm & system_.mcontextmenu_) === system_.mcontextmenu_;
 								PS = this.get_psa(tidx);
 								PSCHK = isOInst(PS,'ps');
+								S38 = !PSCHK;
+								S39 = PSCHK && ((m1 && iscdtj) || m2 || m45 || m6 || m7);
 								switch(true){
-									case !PSCHK:
+									case S38:
 										this.set_psa(tidx, new PSlot(id, x, y, 'm'));
 										//this.#psa[tidx] = new PSlot(id, x, y, 'm');
 									break;
-									case(PSCHK && ((m1 && iscdtj) || m2 || m45 || m6 || m7)):
+									case S39:
 										this.update_psa(tidx, x, y);
 										//this.#psa[tidx].update(x, y);
 									break;
