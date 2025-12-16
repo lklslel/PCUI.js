@@ -2618,12 +2618,6 @@ class system_{
 		let flimit;
 		for(i = system_.PSL - 1;i > -1 ;i--){
 			this.#blur(i);
-			flimit = fl[0].length < i;
-			switch(flimit){
-				case true:
-					this.#del_foc_list(i);
-				break;
-			}
 		}
 	}
 	//#blur_All_ end
@@ -2946,7 +2940,8 @@ class system_{
 				S06 = (tuid === -1 && !hit) || !(Number.isFinite(oldfuid)) || !(Number.isFinite(pfuid))
 				switch(S06){
 					case true:
-						this.#RTRQ(idx);
+						//this.#RTRQ(idx);
+						this.#blur(idx);
 					break;
 				}
 				//console.log('hit = ' + hit + ', tuid = ' + tuid);
@@ -3673,7 +3668,8 @@ class system_{
 									break;
 									//up event
 									case p5:
-										this.#RTRQ(tidx);
+										//this.#RTRQ(tidx);
+										this.#blur(tidx);
 										//console.log('pointer up event');
 									break;
 									case p7:
@@ -3783,7 +3779,8 @@ class system_{
 															this.#BALL();
 														break;
 														case t4:
-															this.#RTRQ(tidx);
+															//this.#RTRQ(tidx);
+															this.#blur(tidx);
 														break;
 														case t2:
 															this.#handle_focus(tidx);
@@ -3837,7 +3834,8 @@ class system_{
 								}
 								switch(true){
 									case m4:
-										this.#RTRQ(tidx);
+										//this.#RTRQ(tidx);
+										this.#blur(tidx);
 									break; 
 									case m2:
 										this.#handle_focus(tidx);
