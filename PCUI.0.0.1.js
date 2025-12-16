@@ -3602,11 +3602,13 @@ class system_{
 									break;
 									//up / leave / enter event
 									case p5:
+										this.#RTRQ(tidx);
 										//console.log('pointer up event');
 									break;
 									case p7:
 										//console.log('pointer leave event');
 										this.#handle_event(tidx,0);
+										this.#RTRQ(tidx);
 									break;
 									case p8:
 										//console.log('pointer enter event');
@@ -3704,9 +3706,10 @@ class system_{
 													switch(true){
 														case t5:
 															this.#handle_event(tidx,4);
+															this.#BALL();
 														break;
 														case t4:
-															this.#blur(tidx);
+															this.#RTRQ(tidx);
 														break;
 														case t2:
 															this.#handle_focus(tidx);
@@ -3758,6 +3761,7 @@ class system_{
 								}
 								switch(true){
 									case m4:
+										this.#RTRQ(tidx);
 									break; 
 									case m2:
 										this.#handle_focus(tidx);
@@ -3771,6 +3775,7 @@ class system_{
 									break;
 									case m5:
 										this.#handle_event(tidx,5);
+										this.#BALL();
 									break;
 									case m6:
 										this.#handle_event(tidx,6);
