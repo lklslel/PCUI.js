@@ -1960,6 +1960,35 @@ class system_{
 		return this.#foc_list;
 	}
 	//get_foc_list end
+	//Text To Focus List start
+	TTFL(){
+		let fl = this.get_foc_list();
+		let DATACHK = Array.isArray(fl) && Array.isArray(fl[0]) && fl[0].length > 0;
+		let RUN = true, result = '';
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let i, fllen_;
+		switch(RUN){
+			case true:
+				fllen_ = fl[0].length - 1;
+				for(i = 0;i < fl[0].length;i++){
+					result += fl[0][i] + ',' + fl[1][i];
+					switch(i){
+						case fllen_:
+						break;
+						default:
+							result += '\n';
+						break;
+					}
+				}
+			break;
+		}
+		return result;
+	}
+	//Text To Focus List end
 	//del_foc_list start
 	//use switch only. do not use if
 	#del_foc_list(idx){
@@ -3479,7 +3508,7 @@ class system_{
 						this.set_mel(true);
 					break;
 				}
-				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y;
+				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL();
 				//console.log('dauev = ' + dauev);
 				this.set_stamp();
 				let S11,S12,S13,S14,S15,S16,S17,S18,S19,S20;
