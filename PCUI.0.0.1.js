@@ -6999,7 +6999,7 @@ function ready(){
 	new window_(50,300,100,100);
 	new window_(125,150,100,100);
 	new window_(300,50,100,100);
-	new window_(50,300,100,100);
+	new window_(300,300,100,100);
 	const rendering = function rendering(){
 		//let t1, t2;
 		//t1 = performance.now();
