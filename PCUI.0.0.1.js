@@ -1431,7 +1431,7 @@ class system_{
 		this.#canvas = document.createElement('canvas');
 		this.#canvas.id = 'PCUI';
 		this.#canvas.width = window.innerWidth;
-		this.#canvas.height = window.innerHeight;
+		this.#canvas.height = 450;
 		this.#canvas.style.touchAction = 'none';
 		this.#canvas.style.userSelect = 'none';
 		this.#ctx = this.#canvas.getContext('2d');
@@ -3429,6 +3429,7 @@ class system_{
 						this.set_mel(true);
 					break;
 				}
+				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y;
 				//console.log('dauev = ' + dauev);
 				this.set_stamp();
 				switch(true){
@@ -6976,7 +6977,7 @@ class renderer_{
 //class part end
 //this area must be place on the last
 //event / global variable area start
-let sys, ime, renderer, tlog = [], ldiv, keydownbound = false;
+let sys, ime, renderer, tlog = [], logtextarea ,keydownbound = false;
 //can i key input?
 let INPUT = true;
 const console_ = window.console;
@@ -6985,6 +6986,13 @@ function ready(){
 	sys = new system_();
 	ime = new ime_('en,ko,vn', sys);
 	renderer = new renderer_(ime, sys);
+	logtextarea = document.createElement('textarea');
+	logtextarea.name = 'log';
+	logtextarea.rows = 10;
+	logtextarea.cols = 100;
+	logtextarea.style.fontWeight = 'bold';
+	logtextarea.disabled = true;
+	document.body.appendChild(logtextarea);
 	switch(keydownbound){
 		case false:
 			window.addEventListener('keydown', keydown_);
