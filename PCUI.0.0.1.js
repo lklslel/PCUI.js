@@ -1845,11 +1845,140 @@ class system_{
 		}
 	}
 	//comp_top_ar end
+	//search_top_lower_on_array start
+	//search top ui_.#uid & lower ui_.#uid on system_.top_ar or system.foc_list (array parameter)
+	//tuid = top ui_.#uid, luid = lower ui_.#uid
+	//use switch only. do not use if
+	#search_top_lower_on_array(array, tuid_){
+		let i, luid_;
+		let DATACHK = Array.isArray(array) === true && Number.isFinite(tuid_);
+		let RUN = true, result = {index:-1, tuid:-1, luid:-1};
+		switch(false){
+			//array must be array and top ui_.#uid must be number.
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				for(i = 0;i < array[0].length;i++){
+					//data format : [[top ui_1.#uid , top ui_2.#uid, ...],
+					//[top ui_1's last child ui_.#uid, top ui_2's last child ui_.#uid, ...]]
+					//i index the array's inner array-area
+					switch(array[0][i]){//tuid must placed on array[0] area
+						case tuid_:
+							//luid must placed on array[1] area
+							result = {index:i, tuid:tuid_, luid:array[1][i]};
+							i = array[0].length;
+						break;
+					}
+				}
+			break;
+		}
+		return result;
+	}
+	//search_top_lower_on_array end
 	//get_top_ar start
 	get_top_ar(){
 		return this.#top_ar;
 	}
 	//get_top_ar end
+	//reg_foc_list start
+	#reg_foc_list(tuid,luid){
+		let DATACHK = Number.isFinite(tuid) && tuid > -1
+		&& Number.isFinite(luid) && luid > -1;
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				this.#foc_list[0].push(tuid);
+				this.#foc_list[1].push(luid);
+			break;
+		}
+	}
+	//reg_foc_list end
+	//update_foc_list start
+	#update_foc_list(idx,tuid,luid){
+		let fllen = this.get_foc_list().length;
+		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < fllen;
+		Number.isFinite(tuid) && tuid > -1
+		&& Number.isFinite(luid) && luid > -1;
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let fl;
+		switch(RUN){
+			case true:
+				this.#foc_list[0][idx] = tuid;
+				this.#foc_list[1][idx] = luid;
+			break;
+		}
+	}
+	//update_foc_list end
+	//foc_list_check start
+	//focus list writting : data format = [top ui_.#uid, focused ui_.#uid]
+	//use switch only. do not use if
+	#foc_list_check(tuid, luid){
+		let DATACHK = Number.isFinite(tuid) && Number.isFinite(luid);
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let fl;
+		switch(RUN){
+			case true:
+				fl = this.get_foc_list();
+				let INDEX = (this.#search_top_lower_on_array(fl, tuid)).index;
+				switch(INDEX){
+					case -1:
+						//add new(focused top ui & lower ui)'s #uid
+						fl[0].push(tuid);
+						fl[1].push(luid);
+						result = true;
+					break;
+					default:
+						//update focused lower ui's #uid
+						this.#foc_list[1][INDEX] = luid;
+					break;
+				}
+			break;
+		}
+		return result;
+	}
+	//foc_list_check end
+	//get_foc_list start
+	get_foc_list(){
+		return this.#foc_list;
+	}
+	//get_foc_list end
+	//del_foc_list start
+	//use switch only. do not use if
+	#del_foc_list(idx){
+		let fl = this.#foc_list;
+		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < system_.PSL && idx < fl[0].length;
+		let RUN = true;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				fl[0].splice(idx,1);
+				fl[1].splice(idx,1);
+			break;
+		}
+	}
+	//del_foc_list end
 	//register start
 	//register ui on the system_
 	//system_.top_ar data format : shortcut of top ui_'s area
@@ -1904,39 +2033,6 @@ class system_{
 		return result;
 	}
 	//register end
-	//search_top_lower_on_array start
-	//search top ui_.#uid & lower ui_.#uid on system_.top_ar or system.foc_list (array parameter)
-	//tuid = top ui_.#uid, luid = lower ui_.#uid
-	//use switch only. do not use if
-	#search_top_lower_on_array(array, tuid_){
-		let i, luid_;
-		let DATACHK = Array.isArray(array) === true && Number.isFinite(tuid_);
-		let RUN = true, result = {index:-1, tuid:-1, luid:-1};
-		switch(false){
-			//array must be array and top ui_.#uid must be number.
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		switch(RUN){
-			case true:
-				for(i = 0;i < array[0].length;i++){
-					//data format : [[top ui_1.#uid , top ui_2.#uid, ...],
-					//[top ui_1's last child ui_.#uid, top ui_2's last child ui_.#uid, ...]]
-					//i index the array's inner array-area
-					switch(array[0][i]){//tuid must placed on array[0] area
-						case tuid_:
-							//luid must placed on array[1] area
-							result = {index:i, tuid:tuid_, luid:array[1][i]};
-							i = array[0].length;
-						break;
-					}
-				}
-			break;
-		}
-		return result;
-	}
-	//search_top_lower_on_array end
 	//drop_ui start
 	//drop the ui
 	//use switch only. do not use if
@@ -2306,99 +2402,6 @@ class system_{
 		return result;
 	}
 	//get_pri_ui end
-	//reg_foc_list start
-	#reg_foc_list(tuid,luid){
-		let DATACHK = Number.isFinite(tuid) && tuid > -1
-		&& Number.isFinite(luid) && luid > -1;
-		let RUN = true, result = false;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		switch(RUN){
-			case true:
-				this.#foc_list[0].push(tuid);
-				this.#foc_list[1].push(luid);
-			break;
-		}
-	}
-	//reg_foc_list end
-	//update_foc_list start
-	#update_foc_list(idx,tuid,luid){
-		let fllen = this.get_foc_list().length;
-		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < fllen;
-		Number.isFinite(tuid) && tuid > -1
-		&& Number.isFinite(luid) && luid > -1;
-		let RUN = true, result = false;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		switch(RUN){
-			case true:
-				this.#foc_list[0][idx] = tuid;
-				this.#foc_list[1][idx] = luid;
-			break;
-		}
-	}
-	//update_foc_list end
-	//foc_list_check start
-	//focus list writting : data format = [top ui_.#uid, focused ui_.#uid]
-	//use switch only. do not use if
-	#foc_list_check(tuid, luid){
-		let DATACHK = Number.isFinite(tuid) && Number.isFinite(luid);
-		let RUN = true, result = false;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		switch(RUN){
-			case true:
-				let INDEX = (this.#search_top_lower_on_array(this.#foc_list, tuid)).index;
-				switch(INDEX){
-					case -1:
-						//add new(focused top ui & lower ui)'s #uid
-						this.#foc_list[0].push(tuid)
-						this.#foc_list[1].push(luid);
-						result = true;
-					break;
-					default:
-						//update focused lower ui's #uid
-						this.#foc_list[1][INDEX] = luid;
-					break;
-				}
-			break;
-		}
-		return result;
-	}
-	//foc_list_check end
-	//del_foc_list start
-	//use switch only. do not use if
-	#del_foc_list(idx){
-		let fl = this.#foc_list;
-		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < system_.PSL && idx < fl[0].length;
-		let RUN = true;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		switch(RUN){
-			case true:
-				fl[0].splice(idx,1);
-				fl[1].splice(idx,1);
-			break;
-		}
-	}
-	//del_foc_list end
-	//get_foc_list start
-	get_foc_list(){
-		return this.#foc_list;
-	}
-	//get_foc_list end
 	//find_ start
 	//foc_list's data(#uid) / top_ar's data(#uid)
 	//search in ui_list
@@ -2612,11 +2615,13 @@ class system_{
 	//use switch only. do not use if
 	#BALL(){
 		let i, fl = this.get_foc_list();
+		let flimit;
 		for(i = system_.PSL - 1;i > -1 ;i--){
 			this.#blur(i);
-			switch(fl[0].length < i){
+			flimit = fl[0].length < i;
+			switch(flimit){
 				case true:
-					this.del_foc_list(i);
+					this.#del_foc_list(i);
 				break;
 			}
 		}
@@ -2641,7 +2646,7 @@ class system_{
 						ps.set_pend(true);
 						//console.log('system_.#RTRQ()\'s data');
 						//console.log(ps, nidx);
-						this.#SRQ(nidx,1);
+						this.#SRQ(nidx,0);
 					break;
 				}
 			break;
@@ -2811,7 +2816,7 @@ class system_{
 					j = this.#find_(tl,1,lcuid);
 					uid = ui_set[i].getUID();
 					tuid_ = j + (uid - j - 1);
-					console.log(i, j, tuid_, lcuid, uid);
+					//console.log(i, j, tuid_, lcuid, uid);
 					//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
 					for(k = j;k > tuid_;k--){
 						//hit = this.#hit_test(ul[k],pos[0],pos[1]);
