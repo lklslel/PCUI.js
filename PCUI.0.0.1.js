@@ -2914,8 +2914,10 @@ class system_{
 						break;
 					}
 				}
+				oldfuid = ps.get_fuid();
+				pfuid = ps.get_tuid();
 				//console.log('tuid = ' + tuid + ', hit = ' + hit);
-				S06 = tuid === -1 && !hit
+				S06 = (tuid === -1 && !hit) || !(Number.isFinite(oldfuid)) || !(Number.isFinite(pfuid))
 				switch(S06){
 					case true:
 						this.#RTRQ(idx);
@@ -3090,7 +3092,8 @@ class system_{
 						//RESET CUMULATIVE VALUE
 						//RESET #mel FLAG
 						this.set_mel(false);
-						//DO NOT RESET FOCUS
+						//RESET FOCUS
+						this.#BALL();
 						//KEEPING ON DOWN BIT
 						//RESET CANCEL EVENT BIT IN IMMEDEATLY
 						this.set_psabm(idx,this.get_psabm(idx) & ~system_.pcancel_);
@@ -3102,7 +3105,8 @@ class system_{
 						//RESET #mel FLAG
 						this.set_mel(false);
 						//STOP system_.psa[idx].set_curr_pos(x, y);
-						//DO NOT RESET FOCUS
+						//RESET FOCUS
+						this.#BALL();
 						//KEEPING ON DOWN BIT
 						//RESET CANCEL EVENT BIT IN IMMEDEATLY
 						this.set_psabm(idx,this.get_psabm(idx) & ~system_.tcancel_);
@@ -3113,7 +3117,8 @@ class system_{
 						ps.set_effoff(true);
 						//OFF drag(stop update coordinate)
 						ps.set_ulock(true);
-						//DO NOT RESET FOCUS
+						//RESET FOCUS
+						this.#BALL();
 						//RESET OUT EVENT BIT IN IMMEDEATLY
 						this.set_psabm(idx,this.get_psabm(idx) & ~system_.mout_);
 					break;
@@ -3262,12 +3267,12 @@ class system_{
 				rect = this.get_rect();
 				switch(isoffset){
 					case true:
-						x = parseInt(e.offsetX);
-						y = parseInt(e.offsetY);
+						x = e.offsetX;
+						y = e.offsetY;
 					break;
 					case false:
-						x = parseInt(e.clientX - rect.left);
-						y = parseInt(e.clientY - rect.top);
+						x = e.clientX - rect.left;
+						y = e.clientY - rect.top;
 					break;
 				}
 				//current event is pointer(mouse)Move?
@@ -3373,8 +3378,8 @@ class system_{
 											tidx = -1;
 										break;
 									}
-									x = parseInt(cts[i].clientX - rect.left);
-									y = parseInt(cts[i].clientY - rect.top);
+									x = cts[i].clientX - rect.left;
+									y = cts[i].clientY - rect.top;
 									//coorditate distance threshold judge process
 									iscdtj = this.CDTJ(tidx, x, y);
 									switch(iscdtj){
@@ -3444,7 +3449,6 @@ class system_{
 									case down:
 										//console.log('pointerDown event bit set in now!')
 										this.set_psabm(tidx,system_.pdown_);
-										PS.set_ulock(false);
 									break;
 									case up:
 										this.set_psabm(tidx,system_.pup_);
@@ -3491,7 +3495,6 @@ class system_{
 									switch(true){
 										case(tidx > -1 && down):
 											this.set_psabm(tidx,system_.tdown_);
-											PS.set_ulock(false);
 										break;
 										case(tidx > -1 && (up || cancel)):
 											this.set_psabm(tidx,system_.tup_);
@@ -3516,7 +3519,6 @@ class system_{
 								switch(true){
 									case down:
 										this.set_psabm(tidx,system_.mdown_);
-										PS.set_ulock(false);
 									break;
 									case up:
 										this.set_psabm(tidx,system_.mup_);
@@ -3599,7 +3601,6 @@ class system_{
 									case p6:
 										//console.log('pointerCancel event');
 										this.#handle_event(tidx,3);
-										this.#BALL();
 									break;
 									//up event
 									case p5:
@@ -3609,7 +3610,6 @@ class system_{
 									case p7:
 										//console.log('pointer leave event');
 										this.#handle_event(tidx,0);
-										this.#RTRQ(tidx);
 									break;
 									case p8:
 										//console.log('pointer enter event');
@@ -3678,8 +3678,8 @@ class system_{
 											s1 = tidx > -1;
 											switch(true){
 												case s1:
-													x = parseInt(cts[i].clientX - rect.left);
-													y = parseInt(cts[i].clientY - rect.top);
+													x = cts[i].clientX - rect.left;
+													y = cts[i].clientY - rect.top;
 													bm = this.get_psabm(tidx);
 													//this.#psabm[tidx] |= bit;
 													//bm = this.#psabm[tidx];
