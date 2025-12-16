@@ -2411,8 +2411,8 @@ class system_{
 	//mode === 1 : ui object search ; return ui_ instance
 	//use switch only. do not use if
 	#find_(array, cat, idx, mode = 0){
-		let DATACHK = Array.isArray(array) && array.length > 0
-			&& Number.isFinite(idx) && idx > -1 && idx < system_.PSL
+		let DATACHK = Array.isArray(array) && Array.isArray(array[0]) && array[0].length > 0
+			&& Number.isFinite(idx) && idx > -1 && idx < this.#uid_cnt
 			&& Number.isFinite(cat);
 		let RUN = true;
 		let fidx = array[cat].indexOf(idx), result, result0 = -1, result1 = null;
@@ -2811,7 +2811,7 @@ class system_{
 					j = this.#find_(tl,1,lcuid);
 					uid = ui_set[i].getUID();
 					tuid_ = j + (uid - j - 1);
-					//console.log(j, tuid_, lcuid, uid);
+					console.log(i, j, tuid_, lcuid, uid);
 					//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
 					for(k = j;k > tuid_;k--){
 						//hit = this.#hit_test(ul[k],pos[0],pos[1]);
@@ -6996,9 +6996,9 @@ function ready(){
 	sys.set_canvas_event();
 	sys.fake_rendering();
 	new window_(50,50,100,100);
-	new window_(50,300,100,100);
-	new window_(125,150,100,100);
 	new window_(300,50,100,100);
+	new window_(175,175,100,100);
+	new window_(50,300,100,100);
 	new window_(300,300,100,100);
 	const rendering = function rendering(){
 		//let t1, t2;
