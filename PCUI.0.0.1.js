@@ -3599,8 +3599,9 @@ class system_{
 									case p6:
 										//console.log('pointerCancel event');
 										this.#handle_event(tidx,3);
+										this.#BALL();
 									break;
-									//up / leave / enter event
+									//up event
 									case p5:
 										this.#RTRQ(tidx);
 										//console.log('pointer up event');
@@ -3772,7 +3773,7 @@ class system_{
 									//case m3:
 									//	this.#handle_move(tidx);
 									//	this.set_mel(true);
-									break;
+									//break;
 									case m5:
 										this.#handle_event(tidx,5);
 										this.#BALL();
