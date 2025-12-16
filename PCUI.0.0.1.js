@@ -3262,12 +3262,12 @@ class system_{
 				rect = this.get_rect();
 				switch(isoffset){
 					case true:
-						x = e.offsetX;
-						y = e.offsetY;
+						x = parseInt(e.offsetX);
+						y = parseInt(e.offsetY);
 					break;
 					case false:
-						x = e.clientX - rect.left;
-						y = e.clientY - rect.top;
+						x = parseInt(e.clientX - rect.left);
+						y = parseInt(e.clientY - rect.top);
 					break;
 				}
 				//current event is pointer(mouse)Move?
@@ -3373,8 +3373,8 @@ class system_{
 											tidx = -1;
 										break;
 									}
-									x = cts[i].clientX - rect.left;
-									y = cts[i].clientY - rect.top;
+									x = parseInt(cts[i].clientX - rect.left);
+									y = parseInt(cts[i].clientY - rect.top);
 									//coorditate distance threshold judge process
 									iscdtj = this.CDTJ(tidx, x, y);
 									switch(iscdtj){
@@ -3675,8 +3675,8 @@ class system_{
 											s1 = tidx > -1;
 											switch(true){
 												case s1:
-													x = cts[i].clientX - rect.left;
-													y = cts[i].clientY - rect.top;
+													x = parseInt(cts[i].clientX - rect.left);
+													y = parseInt(cts[i].clientY - rect.top);
 													bm = this.get_psabm(tidx);
 													//this.#psabm[tidx] |= bit;
 													//bm = this.#psabm[tidx];
@@ -3706,6 +3706,7 @@ class system_{
 															this.#handle_event(tidx,4);
 														break;
 														case t4:
+															this.#blur(tidx);
 														break;
 														case t2:
 															this.#handle_focus(tidx);
