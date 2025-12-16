@@ -3160,6 +3160,7 @@ class system_{
 						c = psa.get_curr_pos();
 					break;
 				}
+				let threshold;
 				switch(isobj(c)){
 					case true:
 						//console.log('previous position is exists');
@@ -3167,8 +3168,9 @@ class system_{
 						dy = Math.abs(c[1] - y);
 						d2 = (dx * dx) + (dy * dy);
 						const D2 = 4;
-						switch(true){
-							case(d2 >= D2):
+						threshold = d2 >= D2
+						switch(threshold){
+							case true:
 								//console.log('Passed Distance Threshold Process. d2 : ' + d2);
 								result = true;
 							break;
