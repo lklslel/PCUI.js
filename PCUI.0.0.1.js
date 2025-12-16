@@ -6995,11 +6995,11 @@ function ready(){
 	sys.set_ime(ime);
 	sys.set_canvas_event();
 	sys.fake_rendering();
-	new window_(50,50,200,200);
-	new window_(50,400,200,200);
-	new window_(325,200,200,200);
-	new window_(600,50,200,200);
-	new window_(600,400,200,200);
+	new window_(50,50,100,100);
+	new window_(50,300,100,100);
+	new window_(125,150,100,100);
+	new window_(300,50,100,100);
+	new window_(50,300,100,100);
 	const rendering = function rendering(){
 		//let t1, t2;
 		//t1 = performance.now();
