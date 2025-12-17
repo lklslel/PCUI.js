@@ -3307,7 +3307,6 @@ class system_{
 		}
 		//console.log('RUN = ' + RUN + ', mel = ' + mel + ', dauev = ' + dauev);
 		switch(RUN && any_event){
-
 			case true:
 				index1 = this.get_psa_empty_idx();
 				index2 = this.#is_in_psa(id);
@@ -3324,6 +3323,13 @@ class system_{
 						tidx = -1;
 					break;
 				}
+				PS = this.get_psa(tidx);
+				PSCHK = isOInst(PS,'ps');
+				switch(PSCHK){
+					case true:
+						UL = PS.get_ulock();
+					break;
+				}
 				bm = this.get_psabm(tidx);
 				isoffset = Number.isFinite(e.offsetX) && Number.isFinite(e.offsetY);
 				rect = this.get_rect();
@@ -3338,9 +3344,9 @@ class system_{
 					break;
 				}
 				//current event is pointer(mouse)Move?
-				PMMOVEJ = (P || M) && move;
+				PMMOVEJ = (P || M) && move && PSCHK && !UL;
 				//current event is pointerMove?
-				TMOVEJ = T && move;
+				TMOVEJ = T && move && PSCHK && !UL;
 				switch(true){
 					case PMMOVEJ:
 						iscdtj = this.CDTJ(tidx, x, y);
@@ -3393,18 +3399,11 @@ class system_{
 								this.set_psabm(tidx,system_.mmove_);
 							break;
 						}
-						PS = this.get_psa(tidx);
-						PSCHK = isOInst(PS,'ps');
-						switch(PSCHK){
-							case true:
-								UL = PS.get_ulock();
-							break;
-						}
 						//console.log(PSCHK,PMMOVE,mel,!UL);
 						S07 = !PSCHK && P;
 						S08 = !PSCHK && M;
-						S09 = PSCHK && PMMOVE && !mel && !UL;
-						S10 = PSCHK && PMMOVE && mel && !UL;
+						S09 = PSCHK && PMMOVE && !mel;
+						S10 = PSCHK && PMMOVE && mel;
 						switch(true){
 							case S07:
 								//console.log(id,x,y);
@@ -3485,8 +3484,8 @@ class system_{
 												break;
 											}
 											S03 = !PSCHK && T;
-											S04 = PSCHK && TMOVE && iscdtj && !mel && !UL;
-											S05 = PSCHK && TMOVE && iscdtj && mel && !UL;
+											S04 = PSCHK && TMOVE && iscdtj && !mel;
+											S05 = PSCHK && TMOVE && iscdtj && mel;
 											switch(true){
 												case S03:
 													//console.log(id,x,y);
@@ -3700,7 +3699,6 @@ class system_{
 									case p5:
 										//this.#RTRQ(tidx);
 										this.#blur(tidx);
-										PS.set_ulock(false);
 										//console.log('pointer up event');
 									break;
 									case p7:
@@ -3717,7 +3715,11 @@ class system_{
 										this.#DNURA = true;
 										//console.log('bit = ' + to_bin(bit) + ', bm = ' + to_bin(bm));
 										this.#handle_focus(tidx);
-										PS.set_ulock(false);
+										switch(S32){
+											case true:
+												PS.set_ulock(false);
+											break;
+										}
 										//console.log('p2 : ',bm);
 										//console.log('tidx = ' + tidx + ', bit = ' + str);
 										//alert(P + ', ' + e.pointerId);
