@@ -3674,8 +3674,8 @@ class system_{
 								pnmove = p2 || p4 || p5 || p6 || p7 || p8;
 								PS = this.get_psa(tidx);
 								PSCHK = isOInst(PS,'ps');
-								S31 = !PSCHK;
-								S32 = PSCHK && pnmove;
+								S31 = !PSCHK && !leave;
+								S32 = PSCHK && pnmove && !leave;
 								switch(true){
 									case S31:
 										//console.log(id,x,y);
