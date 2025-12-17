@@ -2621,22 +2621,21 @@ class system_{
 				fuid = ps.get_fuid();
 				fidx = fl[1].indexOf(fuid);
 				logtextarea.textContent += 'fuid = ' + fuid + ', fidx = ' + fidx + '\n';
+				//this.set_psa(idx,null);
+				//this.set_psabm(idx,0);
 				this.set_psa(idx,null);
 				this.set_psabm(idx,0);
+				ps = this.get_psa(idx);
+				logtextarea.textContent += 'isOInst(ps,\'ps\') = ' + isOInst(ps,'ps') + '\n';
 				switch(fidx){
 					//not exists ; do not anything
 					case -1:
-						ps = this.get_psa(idx);
 						logtextarea.textContent += 'focus was blured in already.';
 					break;
 					//fuid is in system_.#foc_list[1],
 					//system_.del_foc_list(idx);
-					//this.set_psa(idx,null);
-					//this.set_psabm(idx,0);
 					default:
 						this.#del_foc_list(fidx);
-						ps = this.get_psa(idx);
-						logtextarea.textContent += 'isOInst(ps,\'ps\') = ' + isOInst(ps,'ps') + '\n';
 						//console.log(ps);
 					break;
 				}
