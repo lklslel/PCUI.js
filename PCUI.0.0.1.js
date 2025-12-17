@@ -7106,6 +7106,7 @@ function ready(){
 	logtextarea.cols = 100;
 	logtextarea.style.fontWeight = 'bold';
 	logtextarea.disabled = true;
+	logtextarea.textContent = '';
 	document.body.appendChild(logtextarea);
 	switch(keydownbound){
 		case false:
