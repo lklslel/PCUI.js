@@ -3307,6 +3307,7 @@ class system_{
 		}
 		//console.log('RUN = ' + RUN + ', mel = ' + mel + ', dauev = ' + dauev);
 		switch(RUN && any_event){
+
 			case true:
 				index1 = this.get_psa_empty_idx();
 				index2 = this.#is_in_psa(id);
@@ -3699,6 +3700,7 @@ class system_{
 									case p5:
 										//this.#RTRQ(tidx);
 										this.#blur(tidx);
+										PS.set_ulock(false);
 										//console.log('pointer up event');
 									break;
 									case p7:
@@ -3715,6 +3717,7 @@ class system_{
 										this.#DNURA = true;
 										//console.log('bit = ' + to_bin(bit) + ', bm = ' + to_bin(bm));
 										this.#handle_focus(tidx);
+										PS.set_ulock(false);
 										//console.log('p2 : ',bm);
 										//console.log('tidx = ' + tidx + ', bit = ' + str);
 										//alert(P + ', ' + e.pointerId);
