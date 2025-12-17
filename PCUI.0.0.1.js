@@ -2612,7 +2612,7 @@ class system_{
 				RUN = false;
 			break;
 		}
-		//console.log('#blur()\'s DATACHK is ' + DATACHK);
+		logtextarea.textContent += '#blur()\'s DATACHK is ' + DATACHK + '\n';
 		let ps, fuid, fidx;
 		switch(RUN){
 			case true:
@@ -2620,7 +2620,7 @@ class system_{
 //				console.log(ps);
 				fuid = ps.get_fuid();
 				fidx = fl[1].indexOf(fuid);
-				//console.log('fuid = ' + fuid + ', fidx = ' + fidx);
+				logtextarea.textContent += 'fuid = ' + fuid + ', fidx = ' + fidx;
 				switch(fidx){
 					//not exists ; do not anything
 					case -1:
@@ -2632,7 +2632,7 @@ class system_{
 					default:
 						this.#del_foc_list(fidx);
 						this.set_psa(idx,null);
-						//console.log(this.get_psa(idx));
+						console.log(this.get_psa(idx));
 						this.set_psabm(idx,0);
 					break;
 				}
@@ -3508,7 +3508,7 @@ class system_{
 						this.set_mel(true);
 					break;
 				}
-				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL();
+				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL() + '\n';
 				//console.log('dauev = ' + dauev);
 				this.set_stamp();
 				let S11,S12,S13,S14,S15,S16,S17,S18,S19,S20;
