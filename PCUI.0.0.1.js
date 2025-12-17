@@ -3508,7 +3508,7 @@ class system_{
 						this.set_mel(true);
 					break;
 				}
-				logtextarea.textContent = 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL() + '\n';
+				logtextarea.textContent += 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL() + '\n';
 				//console.log('dauev = ' + dauev);
 				this.set_stamp();
 				let S11,S12,S13,S14,S15,S16,S17,S18,S19,S20;
