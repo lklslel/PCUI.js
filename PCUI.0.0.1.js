@@ -1738,6 +1738,45 @@ class system_{
 		}
 	}
 	//update_psa end
+	//Check Duplicated Info Of PSlot Array start
+	CDIOPSA(tuid,luid){
+		let psa = this.#psa;
+		let DATACHK = Number.isFinite(tuid) && tuid > -1 && tuid < this.#uid_cnt
+		&& Number.isFinite(luid) && luid > -1 && luid < this.#uid_cnt
+		&& Array.isArray(psa) && psa.length === system_.PSL;
+		let RUN = true, result = false, i, j, cnt = 0;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let tuid_, luid_, CLENVAL, UIDVAL, S01, S02, S03;
+		switch(RUN){
+			case true:
+				for(i = 0;i < psa.length;i++){
+					tuid_ = psa[i].get_tuid();
+					luid_ = psa[i].get_fuid();
+					UIDVAL = tuid === tuid_ && luid === luid_;
+					switch(UIDVAL){
+						//IS DUPLICETED UID SET
+						//INCREASE THE cnt
+						case true:
+							cnt++;
+						break;
+					}
+				}
+				//cnt is over 1, must keep the focus
+				S03 = cnt > 1;
+				switch(S03){
+					case true:
+						result = true;
+					break;
+				}
+			break;
+		}
+		return result;
+	}
+	//Check Duplicated Info Of PSlot Array end
 	//set_mel start
 	//use switch only. do not use if
 	set_mel(bool){
@@ -3113,15 +3152,24 @@ class system_{
 			break;
 		}
 		let ps = this.get_psa(idx);
-		switch(RUN && isOInst(ps,'ps')){
+		let S01 = RUN && isOInst(ps,'ps');
+		let S02;
+		switch(S01){
 			case true:
 				switch(cat){
 					case 0://pointer leave
 						//OFF hover effect
 						//OFF tooltip effect
 						ps.set_effoff(true);
-						//DELETE PSlot & RESET FOCUS
-						this.#blur(idx);
+						S02 = this.CDIOPSA(ps.get_tuid(),ps.get_fuid());
+						switch(S02){
+							case true:
+								//MUST KEEPING ON FOCUS ; DO NOT .#blur(idx);
+							break;
+							case false:
+								this.#blur(idx);
+							break;
+						}
 					break;
 					case 1://pointer over
 						//ON drag(enable update coordinate)
