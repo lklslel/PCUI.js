@@ -3119,11 +3119,8 @@ class system_{
 						//OFF hover effect
 						//OFF tooltip effect
 						ps.set_effoff(true);
-						//OFF drag(stop update coordinate)
-						ps.set_ulock(true);
-						//DO NOT RESET FOCUS
-						//RESET LEAVE EVENT BIT IN IMMEDEATLY
-						this.set_psabm(idx,this.get_psabm(idx) & ~system_.pleave_);
+						//DELETE PSlot & RESET FOCUS
+						this.#blur(idx);
 					break;
 					case 1://pointer over
 						//ON drag(enable update coordinate)
