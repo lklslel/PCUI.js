@@ -2620,7 +2620,7 @@ class system_{
 //				console.log(ps);
 				fuid = ps.get_fuid();
 				fidx = fl[1].indexOf(fuid);
-				logtextarea.textContent += 'fuid = ' + fuid + ', fidx = ' + fidx;
+				logtextarea.textContent += 'fuid = ' + fuid + ', fidx = ' + fidx + '\n';
 				switch(fidx){
 					//not exists ; do not anything
 					case -1:
@@ -2632,7 +2632,9 @@ class system_{
 					default:
 						this.#del_foc_list(fidx);
 						this.set_psa(idx,null);
-						console.log(this.get_psa(idx));
+						ps = this.get_psa(idx);
+						logtextarea.textContent += 'isOInst(ps,\'ps\') = ' + isOInst(ps,'ps') + '\n';
+						//console.log(ps);
 						this.set_psabm(idx,0);
 					break;
 				}
