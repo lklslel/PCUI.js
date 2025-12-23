@@ -115,6 +115,9 @@ function isOInst(object, category){
 		case 'ctx2d'://CanvasRenderingContext2D
 			origin = CanvasRenderingContext2D;
 		break;
+		case 'obj'://object_
+			origin = object_;
+		break;
 		case 'ui'://ui_
 			origin = ui_;
 		break;
@@ -148,11 +151,14 @@ function isOInst(object, category){
 		case 'bar'://bar_
 			origin = bar_;
 		break;
+		case 'carea'://contents_area_
+			origin = contents_area_;
+		break;
 		case 'winui'://window_
 			origin = window_;
 		break;
 	}
-	let VAL;
+	let VAL = false;
 	switch(true){
 		case isfunc(origin):
 			VAL = object instanceof origin;
@@ -240,22 +246,39 @@ class object_{
 	}
 	//set_parent start
 	set_parent(parent){
-		let DATACHK = isobj2(parent);
-		let result = true;
-		switch(true){
-			case(DATACHK):
-				this.#parent = parent;
-			break;
-			default:
+		let DATACHK = isOInst(parent,'ui');
+		let RUN = true, result = true;
+		switch(false){
+			case DATACHK:
+				RUN = false;
 				result = false;
+			break;
+		}
+		let p, PVAL;
+		switch(RUN){
+			case true:
+				p = sys.GPFSC(parent)
+				//console.log('parent = ', p);
+				PVAL = isOInst(p,'ui');
+				//console.log('PVAL = ', PVAL);
+				switch(PVAL){
+					case false:
+						result = false;
+					break;
+					case true:
+						this.#parent = parent;
+					break;
+				}
 			break;
 		}
 		return result;
 	}
-	//set _parent end
+	//set_parent end
+	//get_parent start
 	get_parent(){
 		return this.#parent;
 	}
+	//get_parent end
 }
 //object_ class end
 //coord_ class start
@@ -419,8 +442,6 @@ class ui_ extends boundery_{
 	#src_ = [];
 	//list of ui_ intance's children ui_
 	#children = [];
-	//list of children ui_'s uid
-	#uid_ = [];
 	//ui_'s yop ui_ instance
 	#top;
 	#fs = null;
@@ -429,7 +450,6 @@ class ui_ extends boundery_{
 		super(x, y, w, h);
 		this.set_src(src_array);
 		//console.log(x,y,w,h,src_array);
-		sys.register(this);
 	}
 	//set_UID start
 	//set the ui_.#uid
@@ -450,7 +470,7 @@ class ui_ extends boundery_{
 	//set_UID end
 	//get the ui_.#uid
 	getUID(){
-		return this.#uid;
+		return Number(this.#uid);
 	}
 	//set_src start
 	set_src(src_array){
@@ -493,13 +513,33 @@ class ui_ extends boundery_{
 	}
 	//get ui_'s children
 	get_children(){
-		return this.#children;
+		return this.#children.slice();
+	}
+	get_childlen(){
+		return Number(this.#children.length);
 	}
 	//get_last_child start
 	get_last_child(){
-		return this.#children[this.#children.length - 1];
+		let ui = this;
+		let result = null;
+		let children = ui.get_children();
+		let lclen = children.length - 1;
+		let LCVAL = Array.isArray(children) && lclen > -1 && isOInst(children[lclen],'ui');
+		while(LCVAL){
+			ui = children[lclen];
+			children = ui.get_children();
+			lclen = children.length - 1;
+			LCVAL = Array.isArray(children) && lclen > -1 && isOInst(children[lclen],'ui');
+		}
+		let UIVAL = isOInst(ui,'ui');
+		switch(UIVAL){
+			case true:
+				result = ui;
+			break;
+		}
+		return result;
 	}
-	//get_lase_child end
+	//get_last_child end
 	//get_parent0 start
 	get_parent0(){
 		let DATACHK = isOInst(this.get_parent(),'ui');
@@ -541,7 +581,7 @@ class ui_ extends boundery_{
 	//add the child on ui_
 	add_child(ui){
 		let DATACHK = isOInst(ui,'ui');
-		let ISWIN = isOInst(ui,'winui');
+		let ISWIN = isOInst(this,'winui');
 		let RUN = true, result = true;
 		switch(false){
 			case DATACHK:
@@ -549,16 +589,12 @@ class ui_ extends boundery_{
 				result = false;
 			break;
 		}
-		let uid_;
 		switch(RUN){
 			case true:
-				uid_ = ui.getUID();
-				this.#uid_.push(uid_);
 				this.#children.push(ui);
-				ui.set_parent(this);
-				switch(true){
-					case ISWIN:
-						this.set_top(ui);
+				switch(ISWIN){
+					case true:
+						ui.set_top(this);
 					break;
 				}
 			break;
@@ -722,6 +758,7 @@ class manipulator_ extends interactive_ui_{
 //if you want to implement the item drop or pickup,
 //use this abstract class to implement to NEW UI class
 class fly_ extends manipulator_{
+	#fly = true;
 	constructor(x, y, w, h, src_array = []){
 		super(x, y, w, h, src_array);
 	}
@@ -744,19 +781,13 @@ class button_ extends interactive_ui_non_rs{
 }
 //button_ class end
 //tooltip_ class start
+//tooltip info
 class tooltip_ extends interactive_ui_non_rs{
 	constructor(x, y, w, h, src_array = []){
 		super(x, y, w, h, src_array);
 	}
 }
 //tooltip_ class end
-//tipui_ class start
-class tipui_ extends interactive_ui_non_rs{
-	constructor(x, y, w, h, src_array = []){
-		super(x, y, w, h, src_array);
-	}
-}
-//tipui_ class end
 //bar_ class start
 //bar_ class : bar_ instance can drag the window_ instance
 //bar_ instatnce is first child of window_ instance.
@@ -776,12 +807,11 @@ class bar_ extends dust_{
 	#cls_btn;
 	#buttons = [];
 	//prepare the get_buttons and focus / hit check
-	constructor(x, y, w, h, src_array = [], btn_img = {min:[], max:[], close:[]}){
+	constructor(x, y, w, h, src_array = []){
 		//will be set the width belong to window_'s width
 		super(x, y, w, h, src_array);
-		this.#init_btn(btn_img);
 	}
-	#init_btn(img){
+	set_btns(img = {min:[], max:[], close:[]}){
 		let DATACHK = isobj(img) && Array.isArray(img.min)
 			&& Array.isArray(img.max) && Array.isArray(img.close);
 		let RUN = true;
@@ -803,15 +833,12 @@ class bar_ extends dust_{
 				this.#min_btn = new button_(x + (w - (h * 3)), y, h, h, img.min);
 				this.#max_btn = new button_(x + (w - (h * 2)), y, h, h, img.max);
 				this.#cls_btn = new button_(x + w - h, y, h, h, img.close);
-				this.add_child(this.#min_btn);
-				this.add_child(this.#max_btn);
-				this.add_child(this.#cls_btn);
 				this.#buttons = [this.#min_btn, this.#max_btn, this.#cls_btn];
 			break;
 		}
 	}
 	//get the bar_'s buttons
-	get_buttons(){
+	get_btns(){
 		return [this.#buttons[0],this.#buttons[1],this.#buttons[2]];
 	}
 }
@@ -823,9 +850,39 @@ class bar_ extends dust_{
 //and can not have pinned state variable.
 //do not toggle the pinned state value. default: false
 class contents_area_ extends interactive_ui_non_rs{
+	#contents;
 	constructor(x, y, w, h, src_array = [], contents_info = {}){
 		super(x, y, w, h, src_array);
 	}
+	//set_contents start
+	set_contents(content_array = {}){
+		let DATACHK = Array.isArray(content_array)
+		&& content_array.length > 0 && isOInst(content_array[0],'ui');
+		let RUN = true;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				this.#contents = content_array;
+			break;
+		}
+	}
+	//set_contents end
+	//get_contents start
+	get_contents(){
+		let result = [];
+		let CONVAL = Array.isArray(this.#contents) && this.#contents.length > 0;
+		switch(CONVAL){
+			case true:
+				result = this.#contents.slice();
+			break;
+		}
+		return result;
+	}
+	//get_contents start
 }
 //contents_area_ class end
 //window_ class start
@@ -841,10 +898,14 @@ class window_ extends interactive_ui_{
 	//if pinned is true, you can not drag the window_
 	//if pinned is false, you can drag the window_
 	#pinned = false;
-	constructor(x, y, w, h, src_array = [], bar_info = {x:0, y:0, w:0, h:20, src_array:[], btn_img:{min:[], max:[], close:[]}}, ca_info = {src_array:[], contents_info:{}}, pinned = false){
+	constructor(x, y, w, h, src_array = [], pinned = false){
 		super(x, y, w, h, src_array);
+		this.set_pinned(pinned);
+	}
+	//set_bar start
+	set_bar(bar_info = {x:0, y:0, w:0, h:20, src_array:[], btn_img:{min:[], max:[], close:[]}}){
 		//bar_ instance date format check
-		let DATACHK1 = isobj(bar_info) && Object.hasOwn(bar_info,'x')
+		let DATACHK = isobj(bar_info) && Object.hasOwn(bar_info,'x')
 		&& Number.isFinite(bar_info.x) && Object.hasOwn(bar_info,'y')
 		&& Number.isFinite(bar_info.y) && Object.hasOwn(bar_info,'w')
 		&& Number.isFinite(bar_info.w) && Object.hasOwn(bar_info,'h')
@@ -857,47 +918,67 @@ class window_ extends interactive_ui_{
 		//-1 < bar_.#x < (window_.#w - 20)
 		//-1 < bar_.#y < (window_.#h - 20)
 		//AT LEAST 20(w) * 20(h) SIZE
-		let DATACHK11 = DATACHK1 && bar_info.x > -1 && bar_info.x < (w - 20)
+		let r = this.get_rect_info();
+		let w = r.w;
+		let h = r.h;
+		let DATACHK2 = DATACHK && bar_info.x > -1 && bar_info.x < (w - 20)
 		&& bar_info.y > -1 && bar_info.y < (h - 20)
 		&& bar_info.w > 19 && bar_info.h > 19;
-		//contents_area_ instance's data format check
-		let DATACHK2 = isobj(ca_info) && Object.hasOwn(ca_info,'src_array')
-		&& Array.isArray(ca_info.src_array) && Object.hasOwn(ca_info,'contents_info');
-		//contents_area_ instance's coordination & area limitation
-		let caha, cava, DATACHK22;
-		switch(isbool(pinned)){
-			case true:
-				this.#pinned = pinned;
-			break;
-		}
 		switch(true){
-			case(DATACHK1 && DATACHK11):
+			case(DATACHK && DATACHK2):
 				this.#bar = new bar_(bar_info.x, bar_info.y, bar_info.w, bar_info.h, bar_info.src_array, bar_info.btn_img);
 			break;
-			case(DATACHK1 && !DATACHK11):
+			case(DATACHK && !DATACHK2):
 				this.#bar = new bar_(0, 0, w, bar_info.h, bar_info.src_array, bar_info.btn_img);
 			break;
 		}
-		this.add_child(this.#bar);
 		//console.log(this.#bar);
-		//this.#bar [ public reference ] for convenience
-		this.bar_ = this.#bar;
-		switch(true){
-			case DATACHK2:
-				this.#contents_area = new contents_area_(0, bar_info.h, w, h - bar_info.h, ca_info.src_array, ca_info.contents_info);
-				caha = this.#contents_area.get_HAtt();
-				cava = this.#contents_area.get_VAtt();
+	}
+	//set_bar end
+	//get_bar start
+	get_bar(){
+		return this.#bar;
+	}
+	//get_bar end
+	//set_contents_area start
+	set_contents_area(ca_info = {src_array:[], contents_info:{}}){
+		//contents_area_ instance's data format check
+		let DATACHK = isobj(ca_info) && Object.hasOwn(ca_info,'src_array')
+		&& Array.isArray(ca_info.src_array) && Object.hasOwn(ca_info,'contents_info')
+		&& isobj(ca_info.contents_info) && isOInst(this.get_bar(),'bar');
+		//console.log(DATACHK);
+		//contents_area_ instance's coordination & area limitation
+		let caha, cava;
+		let r = this.get_rect_info();
+		let x = r.x;
+		let y = r.y;
+		let w = r.w;
+		let h = r.h;
+		let br = this.get_bar().get_rect_info();
+		let cax = 0;
+		let cay = br.h;
+		let caw = w;
+		let cah = h - br.h;
+		let DATACHK2 = DATACHK && isobj(br)
+		&& (((cax + caw) <= br.x && (br.x + br.w) <= w)
+		|| ((w - br.x + br.w) >= caw && (cax + caw) <= w)
+		|| ((cay + cah) <= br.y && (br.y + br.h) <= h)
+		|| ((h - br.y + br.h) >= cah && (cay + cah) <= h))
+		&& isobj(ca_info.contents_info);
+		//console.log(DATACHK2);
+		switch(DATACHK2){
+			case true:
+				this.#contents_area = new contents_area_(cax, cay, caw, cah, ca_info.src_array, ca_info.contents_info);
 			break;
 		}
-		DATACHK22 = DATACHK2 && DATACHK1
-		&& (((caha.x + caha.w) <= bar_info.x && bar_info.x + bar_info.w < w)
-		|| ((w - bar_info.x + bar_info.w) >= caha.w && caha.x + caha.w < w)
-		|| ((caha.y + caha.h) <= bar_info.y && bar_info.y + bar_info.h < h)
-		|| ((h - bar_info.y + bar_info.h) >= caha.h && caha.y + caha.h < h))
-		&& isobj(ca_info.contents_info);
-		this.add_child(this.#contents_area);
 		//console.log(this.#contents_area);
 	}
+	//set_contents_area end
+	//get_contents_area start
+	get_contents_area(){
+		return this.#contents_area;
+	}
+	//get_contents_area end
 	set_pinned(v){
 		this.#pinned = !!v;
 	}
@@ -907,7 +988,7 @@ class window_ extends interactive_ui_{
 	set_pos(x, y){
 		this.set_coord(x, y);
 	}
-	move_by(x = 0, y = 0){
+	move_to(x = 0, y = 0){
 		switch(this.#pinned){
 			case true:
 			break;
@@ -1099,6 +1180,17 @@ class PSlot{
 		return [this.#fpos[0],this.#fpos[1]];
 	}
 	//get_fpos end
+	//update_prev_pos start
+	update_prev_pos(){
+		let VALCHK = Number.isFinite(this.#curr[0])
+		&& Number.isFinite(this.#curr[1])
+		switch(VALCHK){
+			case true:
+				this.#prev = [this.#curr[0],this.#curr[1]];
+			break;
+		}
+	}
+	//update_prev_pos end
 	//get_prev_pos start
 	get_prev_pos(){
 		return [this.#prev[0],this.#prev[1]];
@@ -1131,6 +1223,19 @@ class PSlot{
 		return {prev:[this.#prev[0],this.#prev[1]], curr:[this.#curr[0],this.#curr[1]]};
 	}
 	//get_pos end
+	//Is Different Position start
+	IDP(){
+		let result = false;
+		let POSCHK = this.#curr[0] !== this.#prev[0]
+		|| this.#curr[1] !== this.#prev[0];
+		switch(POSCHK){
+			case true:
+				result = true;
+			break;
+		}
+		return result;
+	}
+	//Is Different Position end
 	//get_color start
 	get_color(){
 		return String(this.#color);
@@ -1411,6 +1516,13 @@ class system_{
 	//frame counter for system_.#rect 
 	#rect_cnt = 3;
 	#lrect = {};
+	//dirty rect padding
+	//12px is stable
+	//you can not feel the stable,
+	//change to 16px
+	static DRPADD = 12;
+	//dirty rendering rect area info
+	#drrai;
 	//system_ class's #state
 	//0:idle
 	//current tabIndex
@@ -1442,6 +1554,28 @@ class system_{
 		this.fake_rendering = this.fake_rendering.bind(this);
 	}
 	//constructor end
+	//set_uid_cnt start
+	#set_uid_cnt(cnt){
+		let ucnt = this.get_uid_cnt();
+		let DATACHK = Number.isFinite(cnt) && cnt > ucnt;
+		let RUN = true;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				this.#uid_cnt = cnt;
+			break;
+		}
+	}
+	//set_uid_cnt end
+	//get_uid_cnt start
+	get_uid_cnt(){
+		return Number(this.#uid_cnt);
+	}
+	//get_uid_cnt end
 	//set_canvas_event start
 	set_canvas_event(){
 		const P = isfunc(window.PointerEvent);
@@ -1738,6 +1872,54 @@ class system_{
 		}
 	}
 	//update_psa end
+	//Update PSA All start
+	UPSAA(){
+		let i, ps;
+		for(i = 0;i < system_.PSL;i++){
+			ps = this.get_psa(i);
+			switch(isOInst(ps,'ps')){
+				case true:
+					ps.update_prev_pos();
+				break;
+			}
+		}
+	}
+	//Update PSA All end
+	//FUID Search In PSA start
+	FUIDSIPSA(){
+		let psa = this.#psa;
+		let fl = this.get_foc_list();
+		let DATACHK = isOInst(psa[0],'ps')
+		&& Array.isArray(fl) && fl.length === 2
+		&& Array.isArray(fl[0]) && fl[0].length > 0
+		&& Array.isArray(fl[1]) && fl[0].length === fl[1].length;
+		let RUN = true, result = [];
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let i, j, FUIDCHK, POSDIFCHK, VAL;
+		switch(RUN){
+			case true:
+				for(i = 0;i < fl[1].length;i++){
+					for(j = 0;j < system_.PSL;j++){
+						FUIDCHK = isOInst(psa[j],'ps') && psa[j].get_fuid() === fl[1][i];
+						POSDIFCHK = psa[i].IDP();
+						VAL = FUIDCHK && POSDIFCHK;
+						switch(VAL){
+							case true:
+								result.push(psa[j]);
+								j = system_.PSL;
+							break;
+						}
+					}
+				}
+			break;
+		}
+		return result;
+	}
+	//FUID Search In PSA end
 	//Check Duplicated Info Of PSlot Array start
 	CDIOPSA(tuid,luid){
 		let psa = this.#psa;
@@ -1754,14 +1936,18 @@ class system_{
 		switch(RUN){
 			case true:
 				for(i = 0;i < psa.length;i++){
-					tuid_ = psa[i].get_tuid();
-					luid_ = psa[i].get_fuid();
-					UIDVAL = tuid === tuid_ && luid === luid_;
-					switch(UIDVAL){
-						//IS DUPLICETED UID SET
-						//INCREASE THE cnt
+					switch(isOInst(psa[i],'ps')){
 						case true:
-							cnt++;
+							tuid_ = psa[i].get_tuid();
+							luid_ = psa[i].get_fuid();
+							UIDVAL = tuid === tuid_ && luid === luid_;
+							switch(UIDVAL){
+								//IS DUPLICETED UID SET
+								//INCREASE THE cnt
+								case true:
+									cnt++;
+								break;
+							}
 						break;
 					}
 				}
@@ -1842,6 +2028,7 @@ class system_{
 		return this.#ui_text;
 	}
 	//get_ui_text end
+	/*
 	//comp_top_ar start
 	//complete system_.top_ar
 	//please do not use in system_.register() function.
@@ -1884,6 +2071,7 @@ class system_{
 		}
 	}
 	//comp_top_ar end
+	*/
 	//search_top_lower_on_array start
 	//search top ui_.#uid & lower ui_.#uid on system_.top_ar or system.foc_list (array parameter)
 	//tuid = top ui_.#uid, luid = lower ui_.#uid
@@ -2055,50 +2243,149 @@ class system_{
 	register(ui){
 		let UICHK = isOInst(ui, 'ui');
 		let WINCHK = isOInst(ui, 'winui');
-		let EDITCHK = isOInst(ui, 'editui');
 		//is complete top_ar?
-		let ICTA = this.#uid_cnt > 0 && this.#top_ar[0].length > this.#top_ar[1].length;
+		//let ICTA = this.#uid_cnt > 0 && this.#top_ar[0].length > this.#top_ar[1].length;
 		let RUN = true, result = false;
 		switch(false){
 			case(UICHK):
 				RUN = false;
 			break;
 		}
+		let ta, ul, tuid, uid, bar, carea, children, CHILDRENVAL, i, EDITCHK;
 		switch(RUN){
 			case true:
-				ui.setUID(this.#uid_cnt);
 				switch(true){
+					//ui_ is window_ instance
+					//window_ instance mus be have the next
+					//bar_ instance
+					//bar_ instance have 1~button(s)
+					//content_area_ instance
 					case WINCHK:
-						switch(true){
-							//if not system_.uid_cnt != 0 && system_.top_ar data set length comparing result is dimatched.
-							//this case will meet the top ui_ instance.
-							//last top ui_ instance's last child must placed on current top ui_.#uid - 1
-							case ICTA:
-								//top ui_'s last child ui_ instance's #uid
-								//this.#uid_cnt = top ui_.#uid
-								this.#top_ar[1].push(this.#uid_cnt - 1);
-							break;
-						}
-						//priority list means ; rendering priority of ui_ instance.
-						 // pri_list: index 0 = highest priority (latest top_ui)
-						this.#update_pri_list(this.#uid_cnt);
-						this.#top_ar[0].push(this.#uid_cnt);
-					break;
-					//lower ui_ instance
-					default:
-						switch(EDITCHK){
+						//READY TO WRITE IN system_.#top_ar
+						ta = this.get_top_ar();
+						//READY TO REGISTER IN system_.#ui_list
+						ul = this.get_ui_list();
+						//GET THE system_.#uid_cnt
+						//CACHING #uid_cnt TO uid
+						uid = this.get_uid_cnt();
+
+						//REGISTER IN NOW [ window_ instance ]
+						//SET THE window_ ui_.#uid
+						ui.setUID(uid);
+						tuid = uid;
+						//window_ instance REGISTER TO system_.#ui_list
+						ul.push(ui);
+						//UPDATE(EXPOSE TO RENDERER) system_.#pri_list BASED tuid FOR RENDERING LOOP
+						this.#update_pri_list(tuid);
+
+						//REGISTER IN NOW [ window_.#bar (bar_ instance) ]
+						//CACHING THE window_.#bar TO bar
+						bar = ui.get_bar();
+						switch(isOInst(bar,'bar')){
 							case true:
-								this.reg_ui_text(this.#uid_cnt,'');
+								//INCREASE CACHED #uid_cnt ( uid )
+								uid++;
+								//SET THE window_.bar_.#uid
+								bar.setUID(uid);
+								//bar_ instance REGISTER TO system_.#ui_list
+								ul.push(bar);
+								ui.add_child(bar);
+								bar.set_parent(ui);
+
+								//REGISTER IN NOW [ window_.#bar.#children[] ]
+								//CACHING THE window_.#bar.#children TO children
+								children = bar.get_btns();
+								CHILDRENVAL = Array.isArray(children) && children.length > 0;
+								switch(CHILDRENVAL){
+									case true:
+										//window_.#bar.#children REGISTER PROCESS START
+										//#children.length === 0,
+										//DO NOT REGISTER PROCESS IN THE NEXT
+										for(i = 0;i < children.length;i++){
+											switch(isOInst(children[i],'ui')){
+												case true:
+													//INCREASE CACHED #uid_cnt ( uid )
+													uid++;
+													//SET THE bar_.#children[i].#uid
+													children[i].setUID(uid);
+													//bar_ instance REGISTER TO system_.#ui_list
+													ul.push(children[i]);
+													//ADD CHILD TO window_.#bar
+													bar.add_child(children[i]);
+													children[i].set_parent(bar);
+												break;
+											}
+										}
+										//window_.#bar.#children REGISTER PROCESS END
+									break;
+								}
 							break;
 						}
+						//CACHING THE window_.#content_area to carea
+						carea = ui.get_contents_area();
+						switch(isOInst(carea,'carea')){
+							case true:
+								//INCREASE CACHED #uid_cnt ( uid )
+								uid++;
+								//SET THE window_.#content_area.#uid
+								carea.setUID(uid);
+								//window_.#content_area REGISTER TO system_.#ui_list
+								ul.push(carea);
+								ui.add_child(carea);
+								carea.set_parent(ui);
+								//REGISTER IN NOW [ window_.#content_area.#children[] ]
+								//CACHING THE window_.#content_area.#children TO children
+								children = carea.get_contents();
+								CHILDRENVAL = Array.isArray(children) && children.length > 0;
+								switch(CHILDRENVAL){
+									case true:
+										//window_.#content_area.#children REGISTER PROCESS START
+										//#children.length === 0,
+										//DO NOT REGISTER PROCESS IN THE NEXT
+										for(i = 0;i < children.length;i++){
+											switch(isOInst(children[i],'ui')){
+												case true:
+													//INCREASE CACHED #uid_cnt ( uid )
+													uid++;
+													//SET THE bar_.#children[i].#uid
+													children[i].setUID(uid);
+													//bar_ instance REGISTER TO system_.#ui_list
+													ul.push(children[i]);
+													//ADD CHILD TO window_.#bar
+													carea.add_child(children[i]);
+													children[i].set_parent(carea);
+													EDITCHK = isOInst(children[i],'editui');
+													switch(EDITCHK){
+														case true:
+															this.reg_ui_text(uid,'');
+														break;
+													}
+												break;
+											}
+										}
+										//window_.#content_area.#children REGISTER PROCESS END
+									break;
+								}
+								//window_ instance(top ui_)'s #uid
+								//PUSH TO
+								//system_.#top_ar[0]
+								ta[0].push(tuid);
+								//window_.#contents_area.#children[last children's index].#uid
+								//PUSH TO
+								//system_.#top_ar[1]
+								ta[1].push(uid);
+								result = true;
+							break;
+						}
+						//INCREASE CACHED #uid_cnt ( uid )
+						uid++;
+						//UPDATE THE system_.#uid_cnt
+						this.#set_uid_cnt(uid);
 					break;
 				}
-				this.#ui_list.push(ui);
-				this.#uid_cnt++;
-				result = true;
 			break;
 		}
-		return result;
+		return result; 
 	}
 	//register end
 	//drop_ui start
@@ -2537,6 +2824,44 @@ class system_{
 		return result;
 	}
 	//find_ end
+	//Get Parent From System_ Class start
+	//uid : parent ui_ instance's #uid
+	GPFSC(ui){
+		let ul = this.get_ui_list();
+		let uid = ui.getUID();
+		let cnt = this.get_uid_cnt()
+		let DATACHK = isOInst(ui,'ui') && Number.isFinite(uid)
+		&& -1 < uid;
+		//console.log('GPFSC DATACHK IN NOW');
+		//console.log(ui,uid,cnt,DATACHK);
+		let RUN = true, result = null;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let ulen, uicnt, UIDCHK;
+		switch(RUN){
+			case true:
+				//console.log('GPFSC RUN IN NOW');
+				uicnt = 0;
+				ulen = ul.length - 1;
+				UIDCHK = ul[ulen].getUID() !== uid;
+				while(UIDCHK){
+					ulen--;
+					UIDCHK = ul[ulen].getUID() !== uid;
+				}
+				switch(UIDCHK){
+					//ui is exists in the system_.#ui_list
+					case false:
+						result = ul[ulen];
+					break;
+				}
+			break;
+		}
+		return result;
+	}
+	//Get Parent From System_ Class end
 	//hit_test start
 	//hit test on ui_'s area
 	//use switch only. do not use if
@@ -2563,53 +2888,27 @@ class system_{
 				//index 2: max button_ instance in the bar_ instance
 				//index 3: close button_ instance in the bar_ instance
 				//index 4: contents_area_ instance
-				const RS = 10;
 				//b = boundery_ data set
 				pui_ = ui.get_parent0();
-				p = pui_.get_rect_info();
-				b = ui.get_rect_info();
+				b = ui.get_sum_rect();
 				puid = pui_.getUID();
 				uid = ui.getUID();
 				fidx = fl[0].indexOf(uid);
 				//console.log('#hit_text()',puid,uid);
 				//console.log('uid, p, b, compare_rect(p,b), fidx');
 				//console.log(uid,p,b,compare_rect(p,b),fidx);
-				switch(true){
-					case(!compare_rect(p,b) && puid !== uid && fidx === -1):
-						//console.log('uid = ' + uid);
-						x0 = p.x + b.x;
-						y0 = p.y + b.y;
-						w0 = b.w;
-						h0 = b.h;
-						x1 = x0;
-						x2 = x1 + w0;
-						y1 = y0;
-						y2 = y1 + h0;
-					break;
-					case(compare_rect(p,b) && fidx > -1):
-					case true:
-						x0 = p.x;
-						y0 = p.y;
-						w0 = p.w;
-						h0 = p.h;
-						x1 = x0;
-						x2 = x1 + w0;
-						y1 = y0;
-						y2 = y1 + h0;
-					break;
-				}
-				//console.log('x, y, x0, y0, w0, h0, x1, x2, y1, y2');
-				//console.log(x,y,x0,y0,w0,h0,x1,x2,y1,y2);
-				rx1 = x1 - RS;
-				rx2 = x2 + RS;
-				ry1 = y1 - RS;
-				ry2 = y2 + RS;
+				//console.log('uid = ' + uid);
+				x0 = b.x;
+				y0 = b.y;
+				w0 = b.w;
+				h0 = b.h;
+				x1 = x0;
+				x2 = x0 + w0;
+				y1 = y0;
+				y2 = y0 + h0;
 				//hit test in normal area(ui_ instance's inner area)
-				HITN = x1 <= x && x <= x2 && y1 <= y && y <= y2;
-				//hit text in resizable area(ui_ instance's outter area)
-				HITRS = (rx1 <= x && x <= rx2 && ry1 <= y && y <= ry2)
-				&& !HITN && fidx > -1 && isOInst(ui,'winui');
-				HIT = HITN || HITRS;
+				//HITN = x1 <= x && x <= x2 && y1 <= y && y <= y2;
+				HIT = x1 <= x && x <= x2 && y1 <= y && y <= y2;
 				console.log(ui);
 				console.log('HIT = ' + HIT);
 				//debug log
@@ -2620,7 +2919,6 @@ class system_{
 				+ 'HIT(HITN || HITRS) check:' + HIT + '\n'
 				+ 'UI:' + ui + '\n'
 				+ 'UI area:' + x1 + ',' + y1 + ',' + x2 + ',' + y2 + '\n'
-				+ 'Resize area:' + rx1 + ',' + rx2 + ',' + ry1 + ',' + ry2 + '\n'
 				+ 'Pointer pos:' + x + ',' + y + '\n'
 				);
 				*/
@@ -2651,7 +2949,7 @@ class system_{
 				RUN = false;
 			break;
 		}
-		logtextarea.textContent += '#blur()\'s DATACHK is ' + DATACHK + '\n';
+		//logtextarea.textContent += '#blur()\'s DATACHK is ' + DATACHK + '\n';
 		let ps, fuid, fidx;
 		switch(RUN){
 			case true:
@@ -2659,17 +2957,17 @@ class system_{
 //				console.log(ps);
 				fuid = ps.get_fuid();
 				fidx = fl[1].indexOf(fuid);
-				logtextarea.textContent += 'fuid = ' + fuid + ', fidx = ' + fidx + '\n';
+				//logtextarea.textContent += 'fuid = ' + fuid + ', fidx = ' + fidx + '\n';
 				//this.set_psa(idx,null);
 				//this.set_psabm(idx,0);
 				this.set_psa(idx,null);
 				this.set_psabm(idx,0);
 				ps = this.get_psa(idx);
-				logtextarea.textContent += 'isOInst(ps,\'ps\') = ' + isOInst(ps,'ps') + '\n';
+				//logtextarea.textContent += 'isOInst(ps,\'ps\') = ' + isOInst(ps,'ps') + '\n';
 				switch(fidx){
 					//not exists ; do not anything
 					case -1:
-						logtextarea.textContent += 'focus was blured in already.';
+						//logtextarea.textContent += 'focus was blured in already.';
 					break;
 					//fuid is in system_.#foc_list[1],
 					//system_.del_foc_list(idx);
@@ -2854,15 +3152,15 @@ class system_{
 		let pl = this.get_pri_list();
 		let ul = this.get_ui_list();
 		let fl = this.get_foc_list();
-		let tl = this.get_top_ar();
+		let ta = this.get_top_ar();
 		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < system_.PSL
 			&& isOInst(this.get_psa(idx),'ps')
 			&& Array.isArray(pl) && pl.length > 0
 			&& Array.isArray(ul) && ul.length > 0
 			&& Array.isArray(fl)
-			&& Array.isArray(tl) && tl.length > 0;
+			&& Array.isArray(ta) && ta.length > 0;
 			//console.log('#handle_focus()\'s NEEDS');
-			//console.warn(idx, pl, ul, fl, tl, DATACHK);
+			//console.warn(idx, pl, ul, fl, ta, DATACHK);
 		let RUN, RUN2;
 		RUN = RUN2 = true;
 		switch(false){
@@ -2870,19 +3168,20 @@ class system_{
 				RUN = false;
 			break;
 		}
-		let ps, i, j, k, l, str, fidx, fidx2;
-		let temp, hit, last_child;
+		let ps, i, j, k, l, str;
+		let temp, hit, children, last_child, LCVAL;
 		let lcuid, uid, tuid_, tuid = -1, luid = -1, VAL;
-		let ui_set = this.get_pri_ui();
+		let ui_set;
 		//console.log('ui_set = ',ui_set);
 		//oldfuid's idx in fl[1], luid's idx in fl[1]
-		let lidx1, lidx2;
+		//let lidx1, lidx2;
 		//PSlot's position
 		//old focused ui's #uid
 		//focused ui's parent's #uid
 		let pos, pidx, oldfuid, pfuid;
 		switch(RUN){
 			case true:
+				ui_set = this.get_pri_ui();
 				ps = this.get_psa(idx);
 				pos = ps.get_curr_pos();
 			break;
@@ -2893,115 +3192,78 @@ class system_{
 		let c, pc, psc;
 		switch(S01){
 			case true:
+				//console.log(ui_set[0].get_last_child_uid());
+				//console.log(ui_set);
 				//console.log('#handle_focus()\' DATACHK was TRUE AND idx is ' + idx);
 				for(i = 0;i < ui_set.length;i++){
 					//top ui_'s #uid search in top_ar[0]
 					//just try hit test in top ui_'s children
 					last_child = ui_set[i].get_last_child();
-					lcuid = last_child.getUID();
-					j = this.#find_(tl,1,lcuid);
-					uid = ui_set[i].getUID();
-					tuid_ = j + (uid - j - 1);
-					//console.log(i, j, tuid_, lcuid, uid);
-					//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
-					for(k = j;k > tuid_;k--){
-						//hit = this.#hit_test(ul[k],pos[0],pos[1]);
-						hit = ul[k].hit_test(pos[0],pos[1]);
-						//console.log('system_.#ui_list['+k+'] = ');
-						//console.log(ul[k]);
-						//console.log('hit = ' + hit);
-						switch(hit){
-							case true:
-								luid = ul[k].getUID();
-								tuid = ul[k].get_parent0().getUID();
-								fidx = fl[0].indexOf(tuid);
-								lidx1 = fl[1].indexOf(luid);
-								oldfuid = ps.get_fuid();
-								lidx2 = fl[1].indexOf(oldfuid);
-								pfuid = ps.get_tuid();
-								pidx = fl[0].indexOf(pfuid);
-								ps.set_uid(tuid,luid);
-								//console.log('tuid = ' + tuid + ', luid = ' + luid);
-								//console.log(tuid,luid,fidx,lidx1);
-								//console.log(oldfuid,lidx2,pfuid,pidx);
-								S02 = pfuid === -1 && oldfuid === -1;
-								S03 = pfuid > -1 && oldfuid > -1 && pfuid === tuid && oldfuid !== luid;
-								S04 = pfuid > -1 && oldfuid > -1 && pfuid !== tuid;
-								switch(true){
-									//previous top ui_'s #uid is not exists in PSlot
-									case S02:
-										this.#reg_foc_list(tuid,luid);
-									break;
-									//previous top ui_;s #uid is exists in PSlot,
-									//pfuid is equal to tuid, oldfuid is not equal to luid
-									case S03:
-										this.#update_foc_list(pidx,tuid,luid);
-									break;
-									case S04:
-										this.#del_foc_list(pidx)
-										this.#reg_foc_list(tuid,luid);
-									break;
-								}
-								this.#update_pri_list(tuid);
-								c = ul[k].get_sum_rect();
-								psc = ps.get_curr_pos();
-								//position of moment of focused
-								ps.set_fpos(c.x, c.y, psc[0], psc[1]);
-								/*
-								//console.log('luid = ' + luid + ', tuid = ' + tuid);
-								switch(true){
-									case(Number.isFinite(luid) && Number.isFinite(tuid)):
+					//console.log(last_child);
+					LCVAL = isOInst(ui_set[i],'ui') && isOInst(last_child,'ui');
+					//console.log('LCVAL = ' + LCVAL);
+					switch(true){
+						case LCVAL:
+							lcuid = last_child.getUID();
+							//console.log(lcuid);
+							j = this.#find_(ta,1,lcuid);
+							//console.log(last_child);
+							///lcuid = last_child.getUID();
+							uid = ui_set[i].getUID();
+							tuid_ = j + (uid - j - 1);
+							//console.log('i, j, tuid_, lcuid, uid');
+							//console.log(i, j, tuid_, lcuid, uid);
+							//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
+							for(k = j;k > tuid_;k--){
+								//hit = this.#hit_test(ul[k],pos[0],pos[1]);
+								hit = ul[k].hit_test(pos[0],pos[1]);
+								//console.log('system_.#ui_list[' + k + '] = ');
+								//console.log(ul[k]);
+								//console.log('hit = ' + hit);
+								switch(hit){
+									case true:
+										//console.log(ul[k].getUID() + ', hit = ' + hit);
+										luid = ul[k].getUID();
+										tuid = ul[k].get_parent0().getUID();
 										oldfuid = ps.get_fuid();
-										pidx = fl[1].indexOf(oldfuid);
-										switch(pidx > -1){
-											case true:
-												pfuid = fl[0][pidx];
-											break;
-										}
-										fidx = fl[0].indexOf(tuid);
-										ps.set_fuid(luid);
-										switch(fidx){
-											//tuid is not exists in system_.#foc_list[0],
-											//register to system_.#foc_list
-											case -1:
+										pfuid = ps.get_tuid();
+										pidx = fl[0].indexOf(pfuid);
+										ps.set_uid(tuid,luid);
+										//console.log('tuid = ' + tuid + ', luid = ' + luid);
+										//console.log(oldfuid,pfuid,pidx);
+										S02 = pfuid === -1 && oldfuid === -1;
+										S03 = pfuid > -1 && oldfuid > -1 && pfuid === tuid && oldfuid !== luid;
+										S04 = pfuid > -1 && oldfuid > -1 && pfuid !== tuid;
+										switch(true){
+											//previous top ui_'s #uid is not exists in PSlot
+											case S02:
 												this.#reg_foc_list(tuid,luid);
 											break;
-											default:
-												switch(temp){
-													case false:
-													break;
-													default:
-													break;
-												}
-												switch(true){
-													//old focused ui_'s parent ui_'s #uid is equal to tuid
-													//AND
-													//old focused ui_'s #uid is not equal to luid
-													//update the pidx of foc_list
-													case(pfuid === tuid && oldfuid !== luid):
-														this.#update_foc_list(pidx,tuid,luid);
-													break;
-												}
+											//previous top ui_;s #uid is exists in PSlot,
+											//pfuid is equal to tuid, oldfuid is not equal to luid
+											case S03:
+												this.#update_foc_list(pidx,tuid,luid);
+											break;
+											case S04:
+												this.#del_foc_list(pidx)
+												this.#reg_foc_list(tuid,luid);
 											break;
 										}
-										//console.log(ps);
 										this.#update_pri_list(tuid);
 										c = ul[k].get_sum_rect();
 										psc = ps.get_curr_pos();
 										//position of moment of focused
 										ps.set_fpos(c.x, c.y, psc[0], psc[1]);
-										//console.log('tuid = ' + tuid + ', luid = ' + luid);
+										k = -1;
 									break;
 								}
-								*/
-								k = -1;
-							break;
-						}
-					}
-					S05 = Number.isFinite(tuid) && tuid > -1 && Number.isFinite(luid) && luid > -1;
-					switch(S05){
-						case true:
-							i = ui_set.length;
+							}
+							S05 = Number.isFinite(tuid) && tuid > -1 && Number.isFinite(luid) && luid > -1;
+							switch(S05){
+								case true:
+									i = ui_set.length;
+								break;
+							}
 						break;
 					}
 				}
@@ -3122,7 +3384,7 @@ class system_{
 								//c = this.#psa[idx].get_curr_pos();
 								//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
 								//current cursor position - position of focused
-								fpui.move_by(c[0] - fpos[0],c[1] - fpos[1]);
+								fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
 							break;
 							case win:
 							//DO NOT ANYTHING IN NOW
@@ -3450,8 +3712,7 @@ class system_{
 						//console.log(PSCHK,PMMOVE,mel,!UL);
 						S07 = !PSCHK && P;
 						S08 = !PSCHK && M;
-						S09 = PSCHK && PMMOVE && !mel;
-						S10 = PSCHK && PMMOVE && mel;
+						S09 = PSCHK && PMMOVE;
 						switch(true){
 							case S07:
 								//console.log(id,x,y);
@@ -3464,12 +3725,7 @@ class system_{
 								//this.#psa[tidx] = new PSlot(id, x, y, 'p');
 							break;
 							case S09:
-								this.update_psa(tidx, x, y);
-								//this.#psa[tidx].update(x, y);
-							break;
-							case S10:
 								PS.set_curr_pos(x, y);
-								//console.log(PS.get_curr_pos());
 								//this.#psa[tidx].update(x, y);
 							break;
 						}
@@ -3532,18 +3788,13 @@ class system_{
 												break;
 											}
 											S03 = !PSCHK && T;
-											S04 = PSCHK && TMOVE && iscdtj && !mel;
-											S05 = PSCHK && TMOVE && iscdtj && mel;
+											S04 = PSCHK && TMOVE && iscdtj
 											switch(true){
 												case S03:
 													//console.log(id,x,y);
 													this.set_psa(tidx, new PSlot(id, x, y, 't'));
 												break;
 												case S04:
-													this.update_psa(tidx, x, y);
-													//this.#psa[tidx].update(x, y);
-												break;
-												case S05:
 													this.get_psa(tidx).set_curr_pos(x, y);
 													//this.#psa[tidx].update(x, y);
 												break;
@@ -3556,7 +3807,8 @@ class system_{
 						this.set_mel(true);
 					break;
 				}
-				logtextarea.textContent += 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL() + '\n';
+
+				//logtextarea.textContent += 'id:' + id + ', tidx:' + tidx + ', event-type:' + e.type + ', x:' + x + ', y:' + y + '\n' + this.TTFL() + '\n';
 				//console.log('dauev = ' + dauev);
 				this.set_stamp();
 				let S11,S12,S13,S14,S15,S16,S17,S18,S19,S20;
@@ -3732,7 +3984,7 @@ class system_{
 										//this.#psa[tidx] = new PSlot(id, x, y, 'p');
 									break;
 									case S32:
-										this.update_psa(tidx, x, y);
+										this.get_psa(tidx).set_curr_pos(x, y);
 										//this.#psa[tidx].update(x, y);
 									break;
 								}
@@ -3849,7 +4101,7 @@ class system_{
 															S37 = (t1 && iscdtj) || t2 || t45;
 															switch(true){
 																case S37:
-																	this.update_psa(tidx, x, y);
+																	this.get_psa(tidx).set_curr_pos(x, y);
 																break;
 															}
 															//this.#psa[tidx].update(x, y);
@@ -3910,7 +4162,7 @@ class system_{
 										//this.#psa[tidx] = new PSlot(id, x, y, 'm');
 									break;
 									case S39:
-										this.update_psa(tidx, x, y);
+										this.get_psa(tidx).set_curr_pos(x, y);
 										//this.#psa[tidx].update(x, y);
 									break;
 								}
@@ -4017,7 +4269,7 @@ class system_{
 	GRBP(){
 		return this.#RBP();
 	}
-	//Get Rendering By Priority start
+	//Get Rendering By Priority end
 	//Drag-Move Event Handling Process start
 	DMEHP(){
 		let psa = this.#psa, bm;
@@ -4059,22 +4311,196 @@ class system_{
 		}
 	}
 	//Drag-Move Event Handling Process end
+	//set_drrai start
+	set_drrai(rect){
+		let DATACHK = isobj(rect) && Object.hasOwn(rect,'x')
+		&& Object.hasOwn(rect,'y') && Object.hasOwn(rect,'w')
+		&& Object.hasOwn(rect,'h');
+		let RUN = true;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				this.#drrai = rect;
+			break;
+		}
+	}
+	//set_drrai end
+	//get drrai start
+	get_drrai(){
+		let drect = this.#drrai;
+		let DATACHK = isobj(drect) && Object.hasOwn(drect,'x')
+		&& Object.hasOwn(drect,'y') && Object.hasOwn(drect,'w')
+		&& Object.hasOwn(drect,'h');
+		let RUN = true, result = null;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				result = {x:drect.x, y:drect.y, w:drect.w, h:drect.h};
+			break;
+		}
+		return result;
+	}
+	//get drrai end
+	//Dirty Rect Rendering Area Caculation start
+	DRRAC(){
+		let psa = this.#psa;
+		let fl = this.get_foc_list();
+		let DATACHK = Array.isArray(psa)
+		&& psa.length === system_.PSL && isOInst(psa[0],'ps')
+		&& Array.isArray(fl) && fl.length === 2
+		&& Array.isArray(fl[0]) && fl[0].length > 0
+		&& Array.isArray(fl[1]) && fl[0].length === fl[1].length;;
+		let RUN = true, result;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let changed, CHVAL, i, VALCHK;
+		let p, c, x, y, x_, y_;
+		//rendering list
+		let rlist;
+		switch(RUN){
+			case true:
+				changed = this.FUIDSIPSA();
+				CHVAL = Array.isArray(changed) && changed.length > 0;
+				switch(CHVAL){
+					case true:
+						//x OR y initial value is not 0;
+						//x OR y is minimum value of coordinate
+						//0 is canvas's point of the zero.
+						//0 can not recommended
+						//if you set the center of the canvas is point of zero,
+						//fix this logic.
+						x_ = y_ = 0;
+						rlist = [];
+						for(i = 0;i < changed.length;i++){
+							p = changed[i].get_prev_pos();
+							c = changed[i].get_curr_pos();
+							CHVAL = (p[0] !== c[0] || p[1] !== c[1])
+							&& fl[0].indexOf(changed[i].get_tuid()) > -1;
+							switch(true){
+								case(i === 0 && CHVAL):
+									x = Math.min(p[0], c[0]);
+									y = Math.min(p[1], c[1]);
+									x_ = Math.max(x_, p[0],c[0]);
+									y_ = Math.max(y_, p[1],c[1]);
+								break;
+								case(i > 0 && CHVAL):
+									x = Math.min(x, p[0], c[0]);
+									y = Math.min(y, p[1], c[1]);
+									x_ = Math.max(x_, p[0],c[0]);
+									y_ = Math.max(y_, p[1],c[1]);
+								break;
+							}
+						}
+						VALCHK = Number.isFinite(x) && Number.isFinite(y)
+						&& Number.isFinite(x_) && Number.isFinite(y_)
+						&& Array.isArray(rlist) && rlist.length > 0;
+						switch(VALCHK){
+							case true:
+								result = {
+									x:x,
+									y:y,
+									w:(x_ - x),
+									h:(y_ - y),
+								}
+								this.set_drrai(result);
+							break;
+						}
+					break;
+				}
+			break;
+		}
+	}
+	//Dirty Rect Rendering Area Caculation end
+	//Dirty Rect Rendering Area start
+	DRRA(){
+		let drect = this.get_drrai();
+		let DATACHK = isobj(drect) && Object.hasOwn(drect,'x') && Object.hasOwn(drect,'y')
+		&& Object.hasOwn(drect,'w') && Object.hasOwn(drect,'h');
+		let DATACHK2;
+		let RUN, RUN2, result = null;
+		RUN = RUN2 = true;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let x, y, w, h, x_, y_, c, r;
+		let ui_set, i, j, XVAL, YVAL, X_VAL, Y_VAL, DRVAL;
+		switch(RUN){
+			case true:
+				x = drect.x;
+				y = drect.y;
+				w = drect.w;
+				h = drect.h;
+				x_ = x + w;
+				y_ = y + h;
+				ui_set = this.get_pri_ui();
+				for(i = 0;i < ui_set.length;i++){
+					r = ui_set[i].get_4p();
+					DRVAL = x < r.x2 && r.x1 < x_
+					&& y < r.y2 && r.y1 < y_;
+					//r.x1 is less than x
+					XVAL = r.x1 < x && DRVAL;
+					//r.x2 is bigger than x_
+					X_VAL = x_ < r.x2 && DRVAL;
+					//r.y1 is less than y
+					YVAL = r.y1 < y && DRVAL;
+					//r.y2 is bigger than y_
+					Y_VAL = y_ < r.y2 && DRVAL;
+					switch(XVAL){
+						case true:
+							x = r.x1 - system_.DRPADD;
+						break;
+					}
+					switch(X_VAL){
+						case true:
+							x_ = r.x2 + system_.DRPADD;
+						break;
+					}
+					switch(YVAL){
+						case true:
+							y = r.y1 - system_.DRPADD;
+						break;
+					}
+					switch(Y_VAL){
+						case true:
+							y_ = r.y2 + system_.DRPADD;
+						break;
+					}
+				}
+				result = {x:x, y:y, w:(x_ - x), h:(y_ - y)};
+			break;
+		}
+		return result;
+	}
+	//Dirty Rect Rendering Area end
 	//update start
 	//use switch only. do not use if
 	update(){
-		let TAVAL = this.#top_ar.length > 0
-			&& this.#top_ar[0].length > this.#top_ar[1].length;
-
+		//let TAVAL = this.#top_ar.length > 0
+		//	&& this.#top_ar[0].length > this.#top_ar[1].length;
 		//top_ar must be in complete
-		switch(TAVAL){
-			case true:
-				let last_index = this.#top_ar[0].length - 1;
-				this.#comp_top_ar(last_index);
-			break;
-		}
+		//switch(TAVAL){
+		//	case true:
+		//		let last_index = this.#top_ar[0].length - 1;
+		//		this.#comp_top_ar(last_index);
+		//	break;
+		//}
 		this.#MRQ();
 		//ime.set_text();
 		//ime.set_isr(false);
+		//global input lock flag reset
 		INPUT = true;
 
 		switch(this.#DNURA){
@@ -4106,7 +4532,12 @@ class system_{
 				}
 			break;
 		}
+		//update all previous position in system_.psa
+		this.UPSAA();
+		//drag and move event handling process
 		this.DMEHP();
+		//dirty rect rendering area caculation
+		this.DRRAC();
 		this.set_mel(false);
 	}
 	//update end
@@ -4123,7 +4554,7 @@ let sys_svl = ['TLIMIT','MMAXBIT','TMAXBIT','PMAXBIT',
 	'mup_','mout_','mwheel_','mcontextmenu_',
 	'PSL','dfs','dlh','dhlc',
 	'enucw','enlcw','kocw','vnac',
-	'vnlcv','vnucv'];
+	'vnlcv','vnucv','DRPADD'];
 for(let a = 0;a < sys_svl.length;a++){
 	Object.defineProperty(system_, sys_svl[a], { writable: false, configurable: false });
 }
@@ -7124,13 +7555,15 @@ class renderer_{
 						}
 					}
 				}
-				//ctx.fillStyle = bwb;
-				//for(i = 0;i < 25;i++){
-				//	for(j = 0;j < 20;j++){
-				//		ctx.fillRect((i * 10),300 + (j * 10),10,10);
-				//		ctx.strokeRect((i * 10),300 + (j * 10),10,10);
-				//	}
-				//}
+				/*
+				ctx.fillStyle = bwb;
+				for(i = 0;i < 20;i++){
+					for(j = 0;j < 20;j++){
+						ctx.fillRect((i * 10),300 + (j * 10),10,10);
+						ctx.strokeRect((i * 10),300 + (j * 10),10,10);
+					}
+				}
+				*/
 			break;
 		}
 	}
@@ -7145,6 +7578,7 @@ let INPUT = true;
 const console_ = window.console;
 
 function ready(){
+	let win1, win2, win3, win4, win5;
 	sys = new system_();
 	ime = new ime_('en,ko,vn', sys);
 	renderer = new renderer_(ime, sys);
@@ -7166,11 +7600,34 @@ function ready(){
 	sys.set_ime(ime);
 	sys.set_canvas_event();
 	sys.fake_rendering();
-	new window_(50,50,100,100);
-	new window_(300,50,100,100);
-	new window_(175,175,100,100);
-	new window_(50,300,100,100);
-	new window_(300,300,100,100);
+
+	win1 = new window_(50,50,100,100);
+	win1.set_bar();
+	win1.get_bar().set_btns();
+	win1.set_contents_area();
+	sys.register(win1);
+	win2 = new window_(300,50,100,100);
+	win2.set_bar();
+	win2.get_bar().set_btns();
+	win2.set_contents_area();
+	sys.register(win2);
+	win3 = new window_(175,175,100,100);
+	win3.set_bar();
+	win3.get_bar().set_btns();
+	win3.set_contents_area();
+	sys.register(win3);
+	win4 = new window_(50,300,100,100);
+	win4.set_bar();
+	win4.get_bar().set_btns();
+	win4.set_contents_area();
+	sys.register(win4);
+	win5 = new window_(300,300,100,100);
+	win5.set_bar();
+	win5.get_bar().set_btns();
+	win5.set_contents_area();
+	sys.register(win5);
+
+
 	const rendering = function rendering(){
 		//let t1, t2;
 		//t1 = performance.now();
