@@ -3340,65 +3340,69 @@ class system_{
 		switch(RUN){
 			case true:
 				ps = this.get_psa(idx);
-				//console.log('DRAG is in now');
-				idx_ = fl[1].indexOf(ps.get_fuid());
-				switch(idx){
-					case -1:
-					break;
-					default:
-						idx_2 = this.get_pri_list().indexOf(fl[0][idx_]);
-					break;
-				}
-				switch(idx_2){
-					case -1:
-					break;
-					default:
-						//NOTE : drag ui_'s infomation search routine is the NEXT;
-						//this data flow belong to set the focus in already
-						//STEP1. get the tuid
-						//tuid = system_.get_foc_list()[0][idx2];
-						tuid = fl[0][idx_2];
-						//STEP2. focused ui(fui) caching
-						//STEP2-1.get focused lower ui_'s #uid
-						luid = fl[1][idx_2];
-						//STEP2-2.get ui_ instance in the system_.#ui_list
-						//BY
-						//system_.#foc_list
-						//top / focused lower toggle bit [0:top / 1: focused lower]
-						//focused lower ui_'s #uid
-						//return type [0:index / 1:ui_instatnce memory]
-						//fui = system_.find_(system_.foc_list,1,focused lower ui_.#uid,1);
-						fui = this.#find_(fl,1,luid,1);
-						//console.log(fui);
-						//STEP5. PROCESSING belong to ui_ classification
-						win = isOInst(fui,'winui');
-						bar = isOInst(fui,'bar');
-						btn = isOInst(fui,'btn');
-						editui = isOInst(fui,'editui');
-						//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
-						switch(true){
-							case bar:
-							//DRAG TOP UI'S POSITION
-								fpui = fui.get_parent();
-								//console.log(fpui);
-								b = fpui.get_boundery();
-								c = ps.get_curr_pos();
-								//p = ps.get_prev_pos();
-								fpos = ps.get_fpos();
-								//console.log(c[0] - fpos[0],c[1] - fpos[1]);
-								//c = this.#psa[idx].get_curr_pos();
-								//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
-								//current cursor position - position of focused
-								fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
+				switch(isOInst(ps,'ps')){
+					case true:
+						//console.log('DRAG is in now');
+						idx_ = fl[1].indexOf(ps.get_fuid());
+						switch(idx){
+							case -1:
 							break;
-							case win:
-							//DO NOT ANYTHING IN NOW
+							default:
+								idx_2 = this.get_pri_list().indexOf(fl[0][idx_]);
 							break;
-							case btn:
-							//DO NOT ANYTHING IN NOW
+						}
+						switch(idx_2){
+							case -1:
 							break;
-							case editui:
-							//DO NOT ANYTHING IN NOW
+							default:
+								//NOTE : drag ui_'s infomation search routine is the NEXT;
+								//this data flow belong to set the focus in already
+								//STEP1. get the tuid
+								//tuid = system_.get_foc_list()[0][idx2];
+								tuid = fl[0][idx_2];
+								//STEP2. focused ui(fui) caching
+								//STEP2-1.get focused lower ui_'s #uid
+								luid = fl[1][idx_2];
+								//STEP2-2.get ui_ instance in the system_.#ui_list
+								//BY
+								//system_.#foc_list
+								//top / focused lower toggle bit [0:top / 1: focused lower]
+								//focused lower ui_'s #uid
+								//return type [0:index / 1:ui_instatnce memory]
+								//fui = system_.find_(system_.foc_list,1,focused lower ui_.#uid,1);
+								fui = this.#find_(fl,1,luid,1);
+								//console.log(fui);
+								//STEP5. PROCESSING belong to ui_ classification
+								win = isOInst(fui,'winui');
+								bar = isOInst(fui,'bar');
+								btn = isOInst(fui,'btn');
+								editui = isOInst(fui,'editui');
+								//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
+								switch(true){
+									case bar:
+									//DRAG TOP UI'S POSITION
+										fpui = fui.get_parent();
+										//console.log(fpui);
+										b = fpui.get_boundery();
+										c = ps.get_curr_pos();
+										//p = ps.get_prev_pos();
+										fpos = ps.get_fpos();
+										//console.log(c[0] - fpos[0],c[1] - fpos[1]);
+										//c = this.#psa[idx].get_curr_pos();
+										//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
+										//current cursor position - position of focused
+										fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
+									break;
+									case win:
+									//DO NOT ANYTHING IN NOW
+									break;
+									case btn:
+									//DO NOT ANYTHING IN NOW
+									break;
+									case editui:
+									//DO NOT ANYTHING IN NOW
+									break;
+								}
 							break;
 						}
 					break;
