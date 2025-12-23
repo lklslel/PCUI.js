@@ -3514,6 +3514,7 @@ class system_{
 						//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
 						switch(true){
 							case bar:
+								alert('bar');
 								logtextarea.textContent += this.FLTS();
 								//DRAG TOP UI'S POSITION
 								fpui = fui.get_parent();
