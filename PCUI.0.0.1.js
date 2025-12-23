@@ -1697,6 +1697,107 @@ class system_{
 		this.#ctabidx--;
 	}
 	//dec_tabidx end
+	//reg_foc_list start
+	#reg_foc_list(tuid,luid){
+		let DATACHK = Number.isFinite(tuid) && tuid > -1
+		&& Number.isFinite(luid) && luid > -1;
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		switch(RUN){
+			case true:
+				this.#foc_list[0].push(tuid);
+				this.#foc_list[1].push(luid);
+			break;
+		}
+	}
+	//reg_foc_list end
+	//update_foc_list start
+	#update_foc_list(idx,tuid,luid){
+		let fllen = this.get_foc_list().length;
+		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < fllen;
+		Number.isFinite(tuid) && tuid > -1
+		&& Number.isFinite(luid) && luid > -1;
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let fl;
+		switch(RUN){
+			case true:
+				this.#foc_list[0][idx] = tuid;
+				this.#foc_list[1][idx] = luid;
+			break;
+		}
+	}
+	//update_foc_list end
+	//foc_list_check start
+	//focus list writting : data format = [top ui_.#uid, focused ui_.#uid]
+	//use switch only. do not use if
+	#foc_list_check(tuid, luid){
+		let DATACHK = Number.isFinite(tuid) && Number.isFinite(luid);
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let fl;
+		switch(RUN){
+			case true:
+				fl = this.get_foc_list();
+				let INDEX = (this.#search_top_lower_on_array(fl, tuid)).index;
+				switch(INDEX){
+					case -1:
+						//add new(focused top ui & lower ui)'s #uid
+						fl[0].push(tuid);
+						fl[1].push(luid);
+						result = true;
+					break;
+					default:
+						//update focused lower ui's #uid
+						this.#foc_list[1][INDEX] = luid;
+					break;
+				}
+			break;
+		}
+		return result;
+	}
+	//foc_list_check end
+	//get_foc_list start
+	get_foc_list(){
+		return this.#foc_list;
+	}
+	//get_foc_list end
+	//Focus List To String start
+	FLTS(){
+		let fl = this.get_foc_list();
+		let DATACHK = Array.isArray(fl) && fl.length === 2
+		&& Array.isArray(fl[0]) && fl[0].length > 0
+		&& Array.isArray(fl[1]) && fl[1].length > 0;
+		let RUN = true, result = '';
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let i;
+		switch(RUN){
+			case true:
+				for(i = 0;i < fl[0].length;i++){
+					result += fl[0][i] + ' , ' + fl[1][i] + '\n';
+				}
+				result += '- - - - - - - - - -\n';
+			break;
+		}
+		return result;
+	}
+	//Focus List To String start
 	//set_psabm start
 	//use switch only. do not use if
 	set_psabm(idx, bit){
@@ -2185,83 +2286,6 @@ class system_{
 		return this.#top_ar;
 	}
 	//get_top_ar end
-	//reg_foc_list start
-	#reg_foc_list(tuid,luid){
-		let DATACHK = Number.isFinite(tuid) && tuid > -1
-		&& Number.isFinite(luid) && luid > -1;
-		let RUN = true, result = false;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		switch(RUN){
-			case true:
-				this.#foc_list[0].push(tuid);
-				this.#foc_list[1].push(luid);
-			break;
-		}
-	}
-	//reg_foc_list end
-	//update_foc_list start
-	#update_foc_list(idx,tuid,luid){
-		let fllen = this.get_foc_list().length;
-		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < fllen;
-		Number.isFinite(tuid) && tuid > -1
-		&& Number.isFinite(luid) && luid > -1;
-		let RUN = true, result = false;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		let fl;
-		switch(RUN){
-			case true:
-				this.#foc_list[0][idx] = tuid;
-				this.#foc_list[1][idx] = luid;
-			break;
-		}
-	}
-	//update_foc_list end
-	//foc_list_check start
-	//focus list writting : data format = [top ui_.#uid, focused ui_.#uid]
-	//use switch only. do not use if
-	#foc_list_check(tuid, luid){
-		let DATACHK = Number.isFinite(tuid) && Number.isFinite(luid);
-		let RUN = true, result = false;
-		switch(false){
-			case DATACHK:
-				RUN = false;
-			break;
-		}
-		let fl;
-		switch(RUN){
-			case true:
-				fl = this.get_foc_list();
-				let INDEX = (this.#search_top_lower_on_array(fl, tuid)).index;
-				switch(INDEX){
-					case -1:
-						//add new(focused top ui & lower ui)'s #uid
-						fl[0].push(tuid);
-						fl[1].push(luid);
-						result = true;
-					break;
-					default:
-						//update focused lower ui's #uid
-						this.#foc_list[1][INDEX] = luid;
-					break;
-				}
-			break;
-		}
-		return result;
-	}
-	//foc_list_check end
-	//get_foc_list start
-	get_foc_list(){
-		return this.#foc_list;
-	}
-	//get_foc_list end
 	//Text To Focus List start
 	TTFL(){
 		let fl = this.get_foc_list();
@@ -3490,7 +3514,8 @@ class system_{
 						//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
 						switch(true){
 							case bar:
-							//DRAG TOP UI'S POSITION
+								logtextarea.textContent += this.FLTS();
+								//DRAG TOP UI'S POSITION
 								fpui = fui.get_parent();
 								//console.log(fpui);
 								b = fpui.get_boundery();
