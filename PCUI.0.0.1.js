@@ -3321,11 +3321,9 @@ class system_{
 	//use switch only. do not use if
 	#handle_drag(idx){
 		let pl = this.get_pri_list();
-		let ul = this.get_ui_list();
 		let fl = this.get_foc_list();
 		let DATACHK = Array.isArray(pl) && pl.length > 0
-			&& isOInst(this.get_psa(idx),'ps') && !(this.get_psa(idx).get_ulock())		
-			&& Array.isArray(ul) && ul.length > 0
+			&& isOInst(this.get_psa(idx),'ps') && !(this.get_psa(idx).get_ulock())	
 			&& Array.isArray(fl) && fl.length > 0
 			&& Number.isFinite(idx) && idx > -1 && idx < system_.PSL;
 		let RUN = true;
@@ -3348,7 +3346,7 @@ class system_{
 							case -1:
 							break;
 							default:
-								idx_2 = this.get_pri_list().indexOf(fl[0][idx_]);
+								idx_2 = pl.indexOf(fl[0][idx_]);
 							break;
 						}
 						switch(idx_2){
@@ -3359,13 +3357,14 @@ class system_{
 								//this data flow belong to set the focus in already
 								//STEP1. get the tuid
 								//tuid = system_.get_foc_list()[0][idx2];
-								tuid = fl[0][idx_2];
+								//tuid = fl[0][idx_2];
 								//STEP2. focused ui(fui) caching
 								//STEP2-1.get focused lower ui_'s #uid
 								luid = fl[1][idx_2];
 							break;
 						}
-						VAL = Number.isFinite(tuid) && Number.isFinite(luid);
+						//VAL = Number.isFinite(tuid) && Number.isFinite(luid);
+						VAL = Number.isFinite(luid);
 						switch(VAL){
 							case true:
 								//STEP2-2.get ui_ instance in the system_.#ui_list
