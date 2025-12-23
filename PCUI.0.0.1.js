@@ -3411,7 +3411,7 @@ class system_{
 				RUN = false;
 			break;
 		}
-		let ps, idx_, idx_2;
+		let ps, ps2, idx_, idx_2;
 		let tuid, luid, fui, i, t1idx, fpui, VAL, TUIDVAL, VAL2;
 		let win, bar, btn, editui, b, c, p, fpos;
 		switch(RUN){
@@ -3462,6 +3462,11 @@ class system_{
 										i = fl[0].length;
 									break;
 								}
+								switch(true){
+									case(t1idx > -1):
+										ps2 = this.get_psa(t1idx);
+									break;
+								}
 								//console.log(fui);
 							break;
 						}
@@ -3469,7 +3474,8 @@ class system_{
 							case true:
 								//STEP5. PROCESSING belong to ui_ classification
 								win = isOInst(fui,'winui');
-								VAL2 = idx === t1idx && ps.get_id() === this.get_psa(t1idx).get_id();
+								VAL2 = idx === t1idx && ps.get_id() === ps2.get_id()
+								&& fui.getUID() === ps2.get_fuid();
 								//console.log('idx, t1idx');
 								//console.log(idx, t1idx);
 								switch(VAL2){
