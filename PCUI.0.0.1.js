@@ -3469,7 +3469,7 @@ class system_{
 							case true:
 								//STEP5. PROCESSING belong to ui_ classification
 								win = isOInst(fui,'winui');
-								VAL2 = idx === t1idx;
+								VAL2 = idx === t1idx && ps.get_id() === this.get_psa(t1idx).get_id();
 								//console.log('idx, t1idx');
 								//console.log(idx, t1idx);
 								switch(VAL2){
