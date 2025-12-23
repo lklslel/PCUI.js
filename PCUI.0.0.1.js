@@ -1890,6 +1890,42 @@ class system_{
 		}
 	}
 	//Update PSA All end
+	//UID Set Duplicate Check In PSA start
+	UIDSDCIPSA(luid, tuid){
+		let ucnt = this.get_uid_cnt();
+		let DATACHK = Number.isFinite(ucnt) && ucnt > -1
+		&& Number.isFinite(luid) && -1 < luid && luid < ucnt
+		&& Number.isFinite(tuid) && -1 < tuid && tuid < ucnt;
+		let RUN = true, result = false;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let i, ps, DUPCHK;
+		switch(RUN){
+			case true:
+				for(i = 0;i < system_.PSL;i++){
+					ps = this.get_psa(i);
+					switch(isOInst(ps,'ps')){
+						case true:
+							//luid, tuid DUPLICATION CHECK
+							DUPCHK = ps.get_fuid() === luid
+							&& ps.get_tuid() === tuid;
+							switch(DUPCHK){
+								case true:
+									result = true;
+									i = system_.PSL;
+								break;
+							}
+						break;
+					}
+				}
+			break;
+		}
+		return result;
+	}
+	//UID Set Duplicate Check In PSA end
 	//FUID Search In PSA start
 	FUIDSIPSA(){
 		let psa = this.#psa;
@@ -2914,8 +2950,8 @@ class system_{
 				//hit test in normal area(ui_ instance's inner area)
 				//HITN = x1 <= x && x <= x2 && y1 <= y && y <= y2;
 				HIT = x1 <= x && x <= x2 && y1 <= y && y <= y2;
-				console.log(ui);
-				console.log('HIT = ' + HIT);
+				//console.log(ui);
+				//console.log('HIT = ' + HIT);
 				//debug log
 				/*
 				console.log('---hit_test---\n'
@@ -3174,7 +3210,7 @@ class system_{
 			break;
 		}
 		let ps, i, j, k, l, str;
-		let temp, hit, children, last_child, LCVAL;
+		let temp, hit, children, last_child, LCVAL,DUPCHK;
 		let lcuid, uid, tuid_, tuid = -1, luid = -1, VAL;
 		let ui_set;
 		//console.log('ui_set = ',ui_set);
@@ -3192,7 +3228,9 @@ class system_{
 			break;
 		}
 		//console.log('pos = ',pos);
-		let S01 = RUN && Array.isArray(ui_set) && ui_set.length > 0 && isobj(pos);
+		let S01 = RUN && Array.isArray(ui_set) && ui_set.length > 0
+		&& Array.isArray(pos) && Number.isFinite(pos[0])
+		&& Number.isFinite(pos[1]);
 		let S02,S03,S04,S05,S06;
 		let c, pc, psc;
 		switch(S01){
@@ -3213,23 +3251,30 @@ class system_{
 							//console.log(lcuid);
 							j = this.#find_(ta,1,lcuid);
 							//console.log(last_child);
-							///lcuid = last_child.getUID();
 							uid = ui_set[i].getUID();
 							tuid_ = j + (uid - j - 1);
-							//console.log('i, j, tuid_, lcuid, uid');
-							//console.log(i, j, tuid_, lcuid, uid);
+							//console.log('i, j, uid, tuid_, lcuid');
+							//console.log(i, j, uid, tuid_, lcuid);
 							//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
 							for(k = j;k > tuid_;k--){
 								//hit = this.#hit_test(ul[k],pos[0],pos[1]);
-								hit = ul[k].hit_test(pos[0],pos[1]);
-								//console.log('system_.#ui_list[' + k + '] = ');
-								//console.log(ul[k]);
-								//console.log('hit = ' + hit);
+								hit = this.#hit_test(ul[k],pos[0],pos[1]);
 								switch(hit){
 									case true:
-										//console.log(ul[k].getUID() + ', hit = ' + hit);
 										luid = ul[k].getUID();
 										tuid = ul[k].get_parent0().getUID();
+										DUPCHK = this.UIDSDCIPSA(luid, tuid);
+										VAL = hit && !DUPCHK;
+									break;
+								}
+								//console.log('system_.#ui_list[' + k + '] = ');
+								//console.log(ul[k]);
+								switch(VAL){
+									case true:
+										//console.log('luid, tuid, DUPCHK');
+										//console.log(luid, tuid, DUPCHK);
+										//console.log('hit, !DUPCHK, VAL');
+										//console.log(hit, !DUPCHK, VAL);
 										oldfuid = ps.get_fuid();
 										pfuid = ps.get_tuid();
 										pidx = fl[0].indexOf(pfuid);
@@ -3263,7 +3308,7 @@ class system_{
 									break;
 								}
 							}
-							S05 = Number.isFinite(tuid) && tuid > -1 && Number.isFinite(luid) && luid > -1;
+							S05 = (Number.isFinite(tuid) && tuid > -1 && Number.isFinite(luid) && luid > -1);
 							switch(S05){
 								case true:
 									i = ui_set.length;
