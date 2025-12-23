@@ -1890,6 +1890,40 @@ class system_{
 		}
 	}
 	//Update PSA All end
+	//Where Is First TUID In PSA start
+	WIFTUIDIPSA(tuid){
+		let ucnt = this.get_uid_cnt();
+		let DATACHK = Number.isFinite(ucnt) && ucnt > -1
+		&& Number.isFinite(tuid) && -1 < tuid && tuid < ucnt;
+		let RUN = true, result = -1;
+		switch(false){
+			case DATACHK:
+				RUN = false;
+			break;
+		}
+		let i, ps, DUPCHK;
+		switch(RUN){
+			case true:
+				for(i = 0;i < system_.PSL;i++){
+					ps = this.get_psa(i);
+					switch(isOInst(ps,'ps')){
+						case true:
+							//tuid DUPLICATION CHECK
+							DUPCHK = ps.get_tuid() === tuid;
+							switch(DUPCHK){
+								case true:
+									result = i;
+									i = system_.PSL;
+								break;
+							}
+						break;
+					}
+				}
+			break;
+		}
+		return result;
+	}
+	//Where Is First TUID In PSA start
 	//UID Set Duplicate Check In PSA start
 	UIDSDCIPSA(luid, tuid){
 		let ucnt = this.get_uid_cnt();
@@ -3378,7 +3412,7 @@ class system_{
 			break;
 		}
 		let ps, idx_, idx_2;
-		let tuid, luid, fui, fpui, VAL;
+		let tuid, luid, fui, i, t1idx, fpui, VAL, TUIDVAL, VAL2;
 		let win, bar, btn, editui, b, c, p, fpos;
 		switch(RUN){
 			case true:
@@ -3402,14 +3436,14 @@ class system_{
 								//this data flow belong to set the focus in already
 								//STEP1. get the tuid
 								//tuid = system_.get_foc_list()[0][idx2];
-								//tuid = fl[0][idx_2];
+								tuid = fl[0][idx_2];
 								//STEP2. focused ui(fui) caching
 								//STEP2-1.get focused lower ui_'s #uid
 								luid = fl[1][idx_2];
 							break;
 						}
 						//VAL = Number.isFinite(tuid) && Number.isFinite(luid);
-						VAL = Number.isFinite(luid);
+						VAL = Number.isFinite(tuid) && Number.isFinite(luid);
 						switch(VAL){
 							case true:
 								//STEP2-2.get ui_ instance in the system_.#ui_list
@@ -3420,6 +3454,14 @@ class system_{
 								//return type [0:index / 1:ui_instatnce memory]
 								//fui = system_.find_(system_.foc_list,1,focused lower ui_.#uid,1);
 								fui = this.#find_(fl,1,luid,1);
+								t1idx = -1;
+								TUIDVAL = fl[0].indexOf(tuid) > -1 && t1idx === -1;
+								switch(TUIDVAL){
+									case true:
+										t1idx = this.WIFTUIDIPSA(tuid);
+										i = fl[0].length;
+									break;
+								}
 								//console.log(fui);
 							break;
 						}
@@ -3427,7 +3469,14 @@ class system_{
 							case true:
 								//STEP5. PROCESSING belong to ui_ classification
 								win = isOInst(fui,'winui');
-								bar = isOInst(fui,'bar');
+								VAL2 = idx === t1idx;
+								//console.log('idx, t1idx');
+								//console.log(idx, t1idx);
+								switch(VAL2){
+									case true:
+										bar = isOInst(fui,'bar');
+									break;
+								}
 								btn = isOInst(fui,'btn');
 								editui = isOInst(fui,'editui');
 							break;
