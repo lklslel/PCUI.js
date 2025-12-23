@@ -3478,19 +3478,6 @@ class system_{
 								//return type [0:index / 1:ui_instatnce memory]
 								//fui = system_.find_(system_.foc_list,1,focused lower ui_.#uid,1);
 								fui = this.#find_(fl,1,luid,1);
-								t1idx = -1;
-								TUIDVAL = fl[0].indexOf(tuid) > -1 && t1idx === -1;
-								switch(TUIDVAL){
-									case true:
-										t1idx = this.WIFTUIDIPSA(tuid);
-										i = fl[0].length;
-									break;
-								}
-								switch(true){
-									case(t1idx > -1):
-										ps2 = this.get_psa(t1idx);
-									break;
-								}
 								//console.log(fui);
 							break;
 						}
@@ -3498,15 +3485,7 @@ class system_{
 							case true:
 								//STEP5. PROCESSING belong to ui_ classification
 								win = isOInst(fui,'winui');
-								VAL2 = idx === t1idx && ps.get_id() === ps2.get_id()
-								&& fui.getUID() === ps2.get_fuid();
-								//console.log('idx, t1idx');
-								//console.log(idx, t1idx);
-								switch(VAL2){
-									case true:
-										bar = isOInst(fui,'bar');
-									break;
-								}
+								bar = isOInst(fui,'bar');
 								btn = isOInst(fui,'btn');
 								editui = isOInst(fui,'editui');
 							break;
@@ -3514,7 +3493,6 @@ class system_{
 						//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
 						switch(true){
 							case bar:
-								alert('bar');
 								logtextarea.textContent += this.FLTS();
 								//DRAG TOP UI'S POSITION
 								fpui = fui.get_parent();
