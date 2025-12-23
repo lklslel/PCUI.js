@@ -3441,6 +3441,7 @@ class system_{
 		switch(RUN){
 			case true:
 				ps = this.get_psa(idx);
+				logtextarea.textContent += 'PSlot\'s id is ' + ps.get_id() + '\n';
 				switch(isOInst(ps,'ps')){
 					case true:
 						//console.log('DRAG is in now');
