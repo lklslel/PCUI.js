@@ -3363,6 +3363,11 @@ class system_{
 								//STEP2. focused ui(fui) caching
 								//STEP2-1.get focused lower ui_'s #uid
 								luid = fl[1][idx_2];
+							break;
+						}
+						VAL = Number.isFinite(tuid) && Number.isFinite(luid);
+						switch(VAL){
+							case true:
 								//STEP2-2.get ui_ instance in the system_.#ui_list
 								//BY
 								//system_.#foc_list
@@ -3372,37 +3377,41 @@ class system_{
 								//fui = system_.find_(system_.foc_list,1,focused lower ui_.#uid,1);
 								fui = this.#find_(fl,1,luid,1);
 								//console.log(fui);
+							break;
+						}
+						switch(isOInst(fui,'ui')){
+							case true:
 								//STEP5. PROCESSING belong to ui_ classification
 								win = isOInst(fui,'winui');
 								bar = isOInst(fui,'bar');
 								btn = isOInst(fui,'btn');
 								editui = isOInst(fui,'editui');
-								//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
-								switch(true){
-									case bar:
-									//DRAG TOP UI'S POSITION
-										fpui = fui.get_parent();
-										//console.log(fpui);
-										b = fpui.get_boundery();
-										c = ps.get_curr_pos();
-										//p = ps.get_prev_pos();
-										fpos = ps.get_fpos();
-										//console.log(c[0] - fpos[0],c[1] - fpos[1]);
-										//c = this.#psa[idx].get_curr_pos();
-										//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
-										//current cursor position - position of focused
-										fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
-									break;
-									case win:
-									//DO NOT ANYTHING IN NOW
-									break;
-									case btn:
-									//DO NOT ANYTHING IN NOW
-									break;
-									case editui:
-									//DO NOT ANYTHING IN NOW
-									break;
-								}
+							break;
+						}
+						//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
+						switch(true){
+							case bar:
+							//DRAG TOP UI'S POSITION
+								fpui = fui.get_parent();
+								//console.log(fpui);
+								b = fpui.get_boundery();
+								c = ps.get_curr_pos();
+								//p = ps.get_prev_pos();
+								fpos = ps.get_fpos();
+								//console.log(c[0] - fpos[0],c[1] - fpos[1]);
+								//c = this.#psa[idx].get_curr_pos();
+								//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
+								//current cursor position - position of focused
+								fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
+							break;
+							case win:
+							//DO NOT ANYTHING IN NOW
+							break;
+							case btn:
+							//DO NOT ANYTHING IN NOW
+							break;
+							case editui:
+							//DO NOT ANYTHING IN NOW
 							break;
 						}
 					break;
