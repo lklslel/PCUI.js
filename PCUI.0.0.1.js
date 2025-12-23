@@ -1610,6 +1610,11 @@ class system_{
 		}
 	}
 	//set_canvas_event end
+	//get_canvas_wh start
+	get_canvas_wh(){
+		return {w:Number(this.#canvas.width),h:Number(this.#canvas.height)};
+	}
+	//get_canvas_wh end
 	//get_ctx start
 	get_ctx(){
 		return this.#ctx;
@@ -7506,12 +7511,15 @@ class renderer_{
 				RUN = false;
 			break;
 		}
-		let li,i,rl,j,w,h;
+		let li,i,rl,j,crect;
 		let p, r, x1, x2, y1, y2;
 		let fl,fs;
 		switch(RUN){
 			case true:
+				//2D context caching
 				const ctx = this.#ctx;
+				//canvas width-height
+				crect = sys.get_canvas_wh();
 				//focus window_ ui's background
 				const fwb = '#ddd';
 				//blur window_ ui's background
@@ -7521,7 +7529,7 @@ class renderer_{
 				li = rui.length;
 				//ORDER BY DESC RENDERING STYLE for renderer_.#rui
 				ctx.globalCompositeOperation = 'destination-over';
-				ctx.clearRect(0, 0, );
+				ctx.clearRect(0, 0, crect.w, crect.h);
 				for(i = 0;i < li;i++){
 					rl = rui[i].length - 1;
 					p = rui[i][0].get_rect_info();
