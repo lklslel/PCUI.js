@@ -1226,7 +1226,7 @@ class PSlot{
 	IDP(){
 		let result = false;
 		let POSCHK = this.#curr[0] !== this.#prev[0]
-		|| this.#curr[1] !== this.#prev[0];
+		|| this.#curr[1] !== this.#prev[1];
 		switch(POSCHK){
 			case true:
 				result = true;
@@ -1988,6 +1988,9 @@ class system_{
 				case true:
 					ps.update_prev_pos();
 				break;
+				case false:
+					i = system_.PSL;
+				break;
 			}
 		}
 	}
@@ -2065,31 +2068,27 @@ class system_{
 	//FUID Search In PSA start
 	FUIDSIPSA(){
 		let psa = this.#psa;
-		let fl = this.get_foc_list();
 		let DATACHK = isOInst(psa[0],'ps')
-		&& Array.isArray(fl) && fl.length === 2
-		&& Array.isArray(fl[0]) && fl[0].length > 0
-		&& Array.isArray(fl[1]) && fl[0].length === fl[1].length;
 		let RUN = true, result = [];
 		switch(false){
 			case DATACHK:
 				RUN = false;
 			break;
 		}
-		let i, j, FUIDCHK, POSDIFCHK, VAL;
+		let fuid, ps, i, VAL;
 		switch(RUN){
 			case true:
-				for(i = 0;i < fl[1].length;i++){
-					for(j = 0;j < system_.PSL;j++){
-						FUIDCHK = isOInst(psa[j],'ps') && psa[j].get_fuid() === fl[1][i];
-						POSDIFCHK = psa[i].IDP();
-						VAL = FUIDCHK && POSDIFCHK;
-						switch(VAL){
-							case true:
-								result.push(psa[j]);
-								j = system_.PSL;
-							break;
-						}
+				for(i = 0;i < system_.PSL;i++){
+					ps = psa[i];
+					fuid = ps.get_fuid();
+					VAL = isOInst(ps,'ps') && Number.isFinite(fuid) && fuid > -1 && ps.IDP();
+					switch(VAL){
+						case true:
+							result.push(ps);
+						break;
+						case false:
+							i = system_.PSL;
+						break;
 					}
 				}
 			break;
@@ -2900,18 +2899,6 @@ class system_{
 						break;
 					}
 				}
-				/*
-				for(i = 0;i < pl.length;i++){
-					for(j = 0;j < ul.length;j++){
-						k = pl[i] === ul[j].getUID();
-						switch(true){
-							case k:
-								ui_set.push(ul[j]);
-							break;
-						}
-					}
-				}
-				*/
 			break;
 		}
 		result = ui_set;
@@ -2970,25 +2957,6 @@ class system_{
 						}
 					break;
 				}
-				/*
-				for(i = 0;i < uldl.length;i++){
-				 	j = uid_ === ul[i].getUID();
-					switch(true){
-						case j:
-							//console.log(ul[i].getUID());
-							switch(mode){
-								case 0:
-									result0 = i;
-								break;
-								case 1:
-									result1 = ul[i];
-								break;
-							}
-							i = ul.length;
-						break;
-					}
-				}
-				*/
 			break;
 		}
 		switch(mode){
@@ -3449,149 +3417,6 @@ class system_{
 				}
 			break;
 		}
-		/*
-		let ps, i, j, k, l, str;
-		let temp, hit, children, last_child, LCVAL,DUPCHK;
-		let lcuid, uid, tuid_, cuidx, tuid = -1, luid = -1, VAL;
-		let ui_set;
-		//console.log('ui_set = ',ui_set);
-		//oldfuid's idx in fl[1], luid's idx in fl[1]
-		//let lidx1, lidx2;
-		//PSlot's position
-		//old focused ui's #uid
-		//focused ui's parent's #uid
-		let pos, pidx, oldfuid, pfuid;
-		switch(RUN){
-			case true:
-				ui_set = this.get_pri_ui();
-				ps = this.get_psa(idx);
-				pos = ps.get_curr_pos();
-			break;
-		}
-		//console.log('pos = ',pos);
-		let S01 = RUN && Array.isArray(ui_set) && ui_set.length > 0
-		&& Array.isArray(pos) && Number.isFinite(pos[0])
-		&& Number.isFinite(pos[1]);
-		let S02,S03,S04,S05,S06;
-		let c, pc, psc;
-		switch(S01){
-			case true:
-				//console.log(ui_set[0].get_last_child_uid());
-				//console.log(ui_set);
-				//console.log('#handle_focus()\' DATACHK was TRUE AND idx is ' + idx);
-				for(i = 0;i < ui_set.length;i++){
-					//top ui_'s #uid search in top_ar[0]
-					//just try hit test in top ui_'s children
-					last_child = ui_set[i].get_last_child();
-					//console.log(last_child);
-					LCVAL = isOInst(ui_set[i],'ui') && isOInst(last_child,'ui');
-					//console.log('LCVAL = ' + LCVAL);
-					switch(true){
-						case LCVAL:
-							lcuid = last_child.getUID();
-							//console.log(lcuid);
-							j = this.#find_(ta,1,lcuid);
-							//console.log(last_child);
-							uid = ui_set[i].getUID();
-							tuid_ = j + (uid - j - 1);
-							//console.log('i, j, uid, tuid_, lcuid');
-							//console.log(i, j, uid, tuid_, lcuid);
-							//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
-
-							for(k = j;k > tuid_;k--){
-								//hit = this.#hit_test(ul[k],pos[0],pos[1]);
-								cuidx = uidl.indexOf(k);
-								switch(cuidx){
-									case -1:
-									break;
-									default:
-										hit = this.#hit_test(ul[cuidx],pos[0],pos[1]);
-										switch(hit){
-											case true:
-												console.log('cuidx = ' + cuidx);
-												luid = ul[k].getUID();
-												tuid = ul[k].get_parent0().getUID();
-												DUPCHK = this.UIDSDCIPSA(luid, tuid);
-												VAL = hit && !DUPCHK;
-											break;
-										}
-										//console.log('system_.#ui_list[' + k + '] = ');
-										//console.log(ul[k]);
-										switch(VAL){
-											case true:
-												//console.log('luid, tuid, DUPCHK');
-												//console.log(luid, tuid, DUPCHK);
-												//console.log('hit, !DUPCHK, VAL');
-												//console.log(hit, !DUPCHK, VAL);
-												oldfuid = ps.get_fuid();
-												pfuid = ps.get_tuid();
-												pidx = fl[0].indexOf(pfuid);
-												ps.set_uid(tuid,luid);
-												//console.log('tuid = ' + tuid + ', luid = ' + luid);
-												//console.log(oldfuid,pfuid,pidx);
-												S02 = pfuid === -1 && oldfuid === -1;
-												S03 = pfuid > -1 && oldfuid > -1 && pfuid === tuid && oldfuid !== luid;
-												S04 = pfuid > -1 && oldfuid > -1 && pfuid !== tuid;
-												switch(true){
-													//previous top ui_'s #uid is not exists in PSlot
-													case S02:
-														this.#reg_foc_list(tuid,luid);
-													break;
-													//previous top ui_;s #uid is exists in PSlot,
-													//pfuid is equal to tuid, oldfuid is not equal to luid
-													case S03:
-														this.#update_foc_list(pidx,tuid,luid);
-													break;
-													case S04:
-														this.#del_foc_list(pidx)
-														this.#reg_foc_list(tuid,luid);
-													break;
-												}
-												this.#update_pri_list(tuid);
-												c = ul[k].get_sum_rect();
-												psc = ps.get_curr_pos();
-												//position of moment of focused
-												ps.set_fpos(c.x, c.y, psc[0], psc[1]);
-												k = -1;
-											break;
-										}
-									break;
-								}
-							}
-							S05 = (Number.isFinite(tuid) && tuid > -1 && Number.isFinite(luid) && luid > -1);
-							switch(S05){
-								case true:
-									i = ui_set.length;
-								break;
-							}
-						break;
-					}
-				}
-				oldfuid = ps.get_fuid();
-				pfuid = ps.get_tuid();
-				//console.log('tuid = ' + tuid + ', hit = ' + hit);
-				S06 = (tuid === -1 && !hit) || !(Number.isFinite(oldfuid)) || !(Number.isFinite(pfuid))
-				switch(S06){
-					case true:
-						//this.#RTRQ(idx);
-						this.#blur(idx);
-					break;
-				}
-				//console.log('hit = ' + hit + ', tuid = ' + tuid);
-			break;
-		}
-		//str = '---handle_focus---\n'
-		//+ 'PSA data at idx:' + psa[idx] + '\n'
-		//+ 'x:' + pos[0] + ', y:' + pos[1] + '\n'
-		//+ 'Pointer idx:' + idx + '\n'
-		//+ 'tuid:' + tuid + ', luid:' + luid + '\n'
-		//+ 'UI set UIDs:' + ui_set.map(u=>u.getUID()).join(', ') + '\n'
-		//+ 'Focus list 0:' + this.#foc_list[0].join(', ') + '\n'
-		//+ 'Focus list 1:' + this.#foc_list[1].join(', ') + '\n';
-		// 디버그 로그
-		//console.log(str);
-		ui_set = null;
-		*/
 	}
 	//handle_focus end
 	//handle_move start
@@ -4587,40 +4412,37 @@ class system_{
 	//Get Rendering By Priority end
 	//Drag-Move Event Handling Process start
 	DMEHP(){
-		let psa = this.#psa, bm;
-		let i, ps, mel = this.get_mel();
+		let psa = this.#psa, psabm = this.#psabm;
+		let i, ps, bm, mel = this.get_mel(), type, mstr, dstr;
 		//[pointer/mouse/touch] move-drag event flag
-		let DRAG,MOVE;
+		let BMVAL,VAL,VAL2,VAL3,DRAG,MOVE;
+		const m = 'move_', d = 'drag_'; 
 		for(i = 0;i < system_.PSL;i++){
 			ps = psa[i];
 			switch(isOInst(ps,'ps')){
 				case true:
-					bm = this.get_psabm(i);
+					bm = psabm[i];
+					BMVAL = Number.isFinite(bm) && bm > 0;
+					switch(BMVAL){
+						case true:
+							type = ps.get_type();
+							mstr = type + m;
+							dstr = type + d;
+							DRAG = (bm & system_[dstr]) === system_[dstr];
+							MOVE = (bm & system_[mstr]) === system_[mstr];
+						break;
+					}
 					switch(true){
-						//pointer event
-						case(Number.isFinite(bm) && ps.get_type() === 'p'):
-							DRAG = (bm & system_.pdrag_) === system_.pdrag_;
-							MOVE = (bm & system_.pmove_) === system_.pmove_;
+						case(mel && DRAG)://down + move event ; high priority
+							this.#handle_drag(i);
 						break;
-						//mouse event
-						case(Number.isFinite(bm) && ps.get_type() === 'm'):
-							DRAG = (bm & system_.mdrag_) === system_.mdrag_;
-							MOVE = (bm & system_.mmove_) === system_.mmove_;
-						break;
-						//touch event
-						case(Number.isFinite(bm) && ps.get_type() === 't'):
-							DRAG = (bm & system_.tdrag_) === system_.tdrag_;
-							MOVE = (bm & system_.tmove_) === system_.tmove_;
+						case(mel && MOVE)://move event ; low priority
+							this.#handle_move(i);
 						break;
 					}
 				break;
-			}
-			switch(true){
-				case(mel && DRAG)://down + move event ; high priority
-					this.#handle_drag(i);
-				break;
-				case(mel && MOVE)://move event ; low priority
-					this.#handle_move(i);
+				case false:
+					i = system_.PSL;
 				break;
 			}
 		}
@@ -4847,12 +4669,12 @@ class system_{
 				}
 			break;
 		}
-		//update all previous position in system_.psa
-		this.UPSAA();
 		//drag and move event handling process
 		this.DMEHP();
+		//update all previous position in system_.psa
+		this.UPSAA();
 		//dirty rect rendering area caculation
-		this.DRRAC();
+		//this.DRRAC();
 		this.set_mel(false);
 	}
 	//update end
