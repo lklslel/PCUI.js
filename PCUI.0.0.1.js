@@ -3673,7 +3673,7 @@ class system_{
 				&& fl[1][idx_] === fui.getUID();
 				//STEP5. PROCESSING belong to ui_ classification
 				win = isOInst(fui,'winui') && UIDVAL;
-				bar = isOInst(fui,'bar') && UIDVAL;
+				bar = isOInst(fui,'bar') && UIDVAL && fui.get_drag();
 				btn = isOInst(fui,'btn') && UIDVAL;
 				editui = isOInst(fui,'editui') && UIDVAL;
 			break;
