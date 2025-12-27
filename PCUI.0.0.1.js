@@ -3633,8 +3633,8 @@ class system_{
 				RUN = false;
 			break;
 		}
-		let ps, ps2, idx_, idx_2;
-		let tuid, luid, fui, i, t1idx, fpui, VAL, TUIDVAL, VAL2;
+		let ps, idx_, idx_2, idx_3;
+		let tuid, luid, fui, fpui, UIDVAL, UIVAL;
 		let win, bar, btn, editui, b, c, p, fpos, str;
 		//NOTE : drag ui_'s infomation search routine is the NEXT;
 		//this data flow belong to set the focus in already
@@ -3654,21 +3654,28 @@ class system_{
 			case(idx_ > -1):
 				str = 'PSlot\'s id is ' + ps.get_id() + '\n';
 				idx_2 = uidl.indexOf(fl[1][idx_]);
+				idx_3 = uidl.indexOf(fl[0][idx_]);
 			break;
 		}
 		//STEP 2. focused ui(fui) caching
 		switch(true){
-			case(idx_2 > -1):
+			case(idx_2 > -1 && idx_3 > -1):
 				fui = ul[idx_2];
+				fpui = ul[idx_3];
+				UIVAL = isOInst(fui,'ui') && isOInst(fpui,'ui');
 			break;
 		}
-		switch(isOInst(fui,'ui')){
+		switch(UIVAL){
 			case true:
+				UIDVAL = fl[0][idx_] === ps.get_tuid()
+				&& fl[0][idx_] === fpui.getUID()
+				&& fl[1][idx_] === ps.get_fuid()
+				&& fl[1][idx_] === fui.getUID();
 				//STEP5. PROCESSING belong to ui_ classification
-				win = isOInst(fui,'winui');
-				bar = isOInst(fui,'bar');
-				btn = isOInst(fui,'btn');
-				editui = isOInst(fui,'editui');
+				win = isOInst(fui,'winui') && UIDVAL;
+				bar = isOInst(fui,'bar') && UIDVAL;
+				btn = isOInst(fui,'btn') && UIDVAL;
+				editui = isOInst(fui,'editui') && UIDVAL;
 			break;
 		}
 		//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
@@ -3676,9 +3683,7 @@ class system_{
 			case bar:
 				str += this.FLTS();
 				//DRAG TOP UI'S POSITION
-				fpui = fui.get_parent();
 				//console.log(fpui);
-				b = fpui.get_boundery();
 				c = ps.get_curr_pos();
 				//p = ps.get_prev_pos();
 				fpos = ps.get_fpos();
