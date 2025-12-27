@@ -3652,7 +3652,7 @@ class system_{
 		//STEP 1-2.get focused lower ui_'s #uid
 		switch(true){
 			case(idx_ > -1):
-				str = 'PSlot\'s id is ' + ps.get_id() + '\n';
+				//str = 'PSlot\'s id is ' + ps.get_id() + '\n';
 				idx_2 = uidl.indexOf(fl[1][idx_]);
 				idx_3 = uidl.indexOf(fl[0][idx_]);
 			break;
@@ -3681,7 +3681,7 @@ class system_{
 		//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
 		switch(true){
 			case bar:
-				str += this.FLTS();
+				//str += this.FLTS();
 				//DRAG TOP UI'S POSITION
 				//console.log(fpui);
 				c = ps.get_curr_pos();
@@ -3692,7 +3692,7 @@ class system_{
 				//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
 				//current cursor position - position of focused
 				fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
-				logtextarea.textContent += str;
+				//logtextarea.textContent += str;
 			break;
 			case win:
 			//DO NOT ANYTHING IN NOW
