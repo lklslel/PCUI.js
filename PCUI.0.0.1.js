@@ -623,7 +623,6 @@ class ui_ extends boundery_{
 					let child = this.#children[index];
 					child.set_parent(null);
 					child.drop_src();
-					system_.drop_ui(child.getUID());
 					this.#children.splice(index, 1);
 					result = true;
 				}catch(e){
@@ -1447,6 +1446,8 @@ class system_{
 	]);
 	//ui list
 	#ui_list = [];
+	//uid_list
+	#uid_list = [];
 	//priority list of ui
 	#pri_list = [];
 	//focused ui list
@@ -1771,7 +1772,7 @@ class system_{
 	//foc_list_check end
 	//get_foc_list start
 	get_foc_list(){
-		return this.#foc_list;
+		return this.#foc_list.slice();
 	}
 	//get_foc_list end
 	//Focus List To String start
@@ -2201,7 +2202,7 @@ class system_{
 	//set_ui_text end
 	//get_ui_text start
 	get_ui_text(){
-		return this.#ui_text;
+		return this.#ui_text.slice();
 	}
 	//get_ui_text end
 	/*
@@ -2283,7 +2284,7 @@ class system_{
 	//search_top_lower_on_array end
 	//get_top_ar start
 	get_top_ar(){
-		return this.#top_ar;
+		return this.#top_ar.slice();
 	}
 	//get_top_ar end
 	//Text To Focus List start
@@ -2350,7 +2351,7 @@ class system_{
 				RUN = false;
 			break;
 		}
-		let ta, ul, tuid, uid, bar, carea, children, CHILDRENVAL, i, EDITCHK;
+		let ta, ul, uidl, tuid, uid, bar, carea, children, CHILDRENVAL, i, EDITCHK;
 		switch(RUN){
 			case true:
 				switch(true){
@@ -2361,9 +2362,10 @@ class system_{
 					//content_area_ instance
 					case WINCHK:
 						//READY TO WRITE IN system_.#top_ar
-						ta = this.get_top_ar();
+						ta = this.#top_ar;
 						//READY TO REGISTER IN system_.#ui_list
-						ul = this.get_ui_list();
+						ul = this.#ui_list;
+						uidl = this.#uid_list;
 						//GET THE system_.#uid_cnt
 						//CACHING #uid_cnt TO uid
 						uid = this.get_uid_cnt();
@@ -2374,6 +2376,8 @@ class system_{
 						tuid = uid;
 						//window_ instance REGISTER TO system_.#ui_list
 						ul.push(ui);
+						uidl.push(uid);
+
 						//UPDATE(EXPOSE TO RENDERER) system_.#pri_list BASED tuid FOR RENDERING LOOP
 						this.#update_pri_list(tuid);
 
@@ -2388,6 +2392,7 @@ class system_{
 								bar.setUID(uid);
 								//bar_ instance REGISTER TO system_.#ui_list
 								ul.push(bar);
+								uidl.push(uid);
 								ui.add_child(bar);
 								bar.set_parent(ui);
 
@@ -2409,6 +2414,7 @@ class system_{
 													children[i].setUID(uid);
 													//bar_ instance REGISTER TO system_.#ui_list
 													ul.push(children[i]);
+													uidl.push(uid);
 													//ADD CHILD TO window_.#bar
 													bar.add_child(children[i]);
 													children[i].set_parent(bar);
@@ -2430,6 +2436,7 @@ class system_{
 								carea.setUID(uid);
 								//window_.#content_area REGISTER TO system_.#ui_list
 								ul.push(carea);
+								uidl.push(uid);
 								ui.add_child(carea);
 								carea.set_parent(ui);
 								//REGISTER IN NOW [ window_.#content_area.#children[] ]
@@ -2448,8 +2455,9 @@ class system_{
 													uid++;
 													//SET THE bar_.#children[i].#uid
 													children[i].setUID(uid);
-													//bar_ instance REGISTER TO system_.#ui_list
+													//button_ instance REGISTER TO system_.#ui_list
 													ul.push(children[i]);
+													uidl.push(uid);
 													//ADD CHILD TO window_.#bar
 													carea.add_child(children[i]);
 													children[i].set_parent(carea);
@@ -2499,120 +2507,155 @@ class system_{
 				RUN = false;
 			break;
 		}
+		let pl, ul, uidl, fl, ui, ta, pidx, fidx, tidx, lim, lidx, lidx2, children, children2, cui, i, j, k, l, eui;
+		let WINVAL, UIVAL, EDITVAL, BARVAL, EDITVAL2, CAREAVAL, EDITVAL3, CHILDRENVAL, index, info, info2, WINEX;
 		switch(RUN){
 			case true:
-				let list = this.#ui_list;
-				let i, j, k, index, info, info2;
-				for(i = 0;i < list.length;i+=5){
-					k = list[i].getUID() === uid;
-					switch(true){
-						case k:
-							index = i;
-						break;
-					}
-				}
-				let WINEX = index > -1 && isOInst(this.#ui_list[index], 'winui');
-				switch(true){
-					case(WINEX):
-						//search the [(top ui_'s #uid), (top ui_'s last child ui_'s #uid)]'s' index on system_.top_ar
-						info = this.#search_top_lower_on_array(this.#top_ar, uid);
-						//if not exists
-						switch(info.index){
-							case false:
-								//warning to process failed.
-								console.warn('! ! this top ui_ instance was deleted alreay ! !', uid);
-								RUN2 = false;
-							break;
-						}
-					break;
-				}
-			break;
-		}
-		let S01 = RUN && RUN2 && WINEX;
-		switch(S01){
-			case true:
-				//search the [(top ui_'s #uid), (top ui_'s last child ui_'s #uid)]'s' index on system_.top_ar
-				info = this.#search_top_lower_on_array(this.#top_ar, uid);
-				//if not exists
-				switch(info.index){
-					case false:
-						//warning to process failed.
-						console.warn('! ! this top ui_ instance was deleted alreay ! !', uid);
-						RUN3 = false;
-					break;
-				}
-			break;
-		}
-		let S02 = S01 && RUN3;
-		let fl;
-		switch(S02){
-			case true:
-				let idx;
-				//exists index on the system_.top_ar,
-				//remove child ; top ui_'s last child to first child
-				//and delete from system_.ui_list , system_.foc_list , system_.top_ar
-				for(i = info.luid;i > info.tuid;i--){
-					let EDITCHK = isOInst(this.#ui_list[i],'editui');
-					switch(true){
-						case(EDITCHK):
-							j = this.#ui_text.indexOf(this.#ui_list[i].getUID());
-							switch(true){
-								case(j > -1):
-									this.#ui_text[0].splice(j, 1);
-									this.#ui_text[1].splice(j, 1);
-								break;
-							}
-						break;
-					}
-					idx = i - info.tuid - 1;
-					this.#ui_list[info.tuid].remove_child(idx);
-				}
-				this.#ui_list.splice(info.tuid, info.luid - info.tuid + 1);
-				//search the [(top ui_'s #uid), (top ui_'s focused child ui_'s #uid)]'s' index on system_.foc_list
-				fl = this.get_foc_list();
-				for(i = fl[0].length - 1;i > -1;i--){
-					switch(true){
-						case(fl[0][i] === uid):
-							this.#del_foc_list(i);
-						break;
-					}
-				}
-				//search the [(top ui_'s #uid), (top ui_'s last child ui_'s #uid)]'s' index on system_.top_ar
-				info2 = this.#search_top_lower_on_array(this.#top_ar, uid);
-				switch(isobj(info2)){
-					case true:
-						this.#top_ar[0].splice(info2.index, 1);
-						this.#top_ar[1].splice(info2.index, 1);
-					break;
-				}
-				i = this.#pri_list.indexOf(uid);
-				switch(true){
-					case(i > -1):
-						this.#pri_list.splice(i, 1);
-					break;
-				}
-			break;
-		}
-		let S03 = RUN && RUN2 && RUN3 && !isbool(WINEX)
-		switch(S03){
-			case true:
+				uidl = this.#uid_list;
+				index = uidl.indexOf(uid);
 				switch(index){
-					case false:
+					case -1:
 					break;
 					default:
-						let EDITCHK2 = isOInst(this.#ui_list[index],'editui');
-						switch(EDITCHK2){
-							case true:
-								j = this.#ui_text.indexOf(this.#ui_list[index].getUID());
-								switch(true){
-									case(j > -1):
-										this.#ui_text[0].splice(j, 1);
-										this.#ui_text[1].splice(j, 1);
+						ul = this.#ui_list;
+						ui = ul[index];
+						WINVAL = isOInst(ui,'winui');
+						UIVAL = isOInst(ui,'ui');
+						EDITVAL = isOInst(ui,'editui');
+						fl = this.#foc_list;
+					break;
+				}
+				switch(true){
+					case WINVAL:
+						ta = this.get_top_ar();
+						tidx = ta[0].indexOf(uidl[index]);
+						switch(tidx){
+							case -1:
+							break;
+							default:
+								i = index + (ta[1][tidx] - ta[0][tidx]);
+								while(i > index){
+									BARVAL = isOInst(ul[i],'bar');
+									CAREAVAL = isOInst(ul[i],'carea');
+									EDITVAL2 = isOInst(ul[i],'editui');
+									CHILDRENVAL = BARVAL || CAREAVAL;
+									switch(true){
+										//CHILD ui_ instance HAVE THE CHILDREN,
+										//REMOVE THE ui_ instance's CHILDREN;
+										case CHILDRENVAL:
+											j = ul[i].get_childlen() - 1;
+											switch(true){
+												case(j > -1):
+													//console.log('DELETE THE CHILDREN')
+													while(j > -1){
+														ul[i].remove_child(j--);
+													}
+												break;
+											}
+										break;
+										//child ui is editable_ui_,
+										//DO splice PROCESS.
+										case EDITVAL2:
+											j = this.get_ui_text().indexOf(i);
+											switch(i){
+												case -1:
+												break;
+												default:
+													this.#ui_text[0].splice(j,1);
+													this.#ui_text[1].splice(j,1);
+												break;
+											}
+										break;
+									}
+									i--;
+								}
+								k = ta[1][tidx] - ta[0][tidx];
+								l = k + 1;
+								//REMOVE THE window_ instance's CHILDREN.
+								while(k > -1){
+									ui.remove_child(k--);
+								}
+								ta[0].splice(tidx,1);
+								ta[1].splice(tidx,1);
+								pl = this.#pri_list;
+								pidx = pl.indexOf(uid);
+								switch(pidx){
+									case -1:
+									break;
+									default:
+										pl.splice(pidx,1);
+										this.SURUIL(true);
 									break;
 								}
+								fl = this.#foc_list;
+								while(fl[0].indexOf(uid) === -1){
+									fidx = fl[0].indexOf(uid);
+									switch(fidx){
+										case -1:
+										break;
+										default:
+											fl[0].splice(fidx,1);
+											fl[1].splice(fidx,1);
+										break;
+									}
+								}
+								ul.splice(index,l);
+								uidl.splice(index,l);
 							break;
 						}
-						this.#ui_list.splice(index, 1);
+					break;
+					//ui is editable_ui_ instance,
+					//DO splice PROCESS.
+					case EDITVAL:
+						i = this.get_ui_text().indexOf(uid);
+						switch(i){
+							case -1:
+							break;
+							default:
+								this.#ui_text[0].splice(i,1);
+								this.#ui_text[1].splice(i,1);
+								while(fl[1].indexOf(uid) === -1){
+									fidx = fl[1].indexOf(uid);
+									switch(fidx){
+										case -1:
+										break;
+										default:
+											fl[0].splice(fidx,1);
+											fl[1].splice(fidx,1);
+										break;
+									}
+								}
+								ul.splice(index,l);
+								uidl.splice(index,l);
+							break;
+						}
+					break;
+					case UIVAL:
+						i = ui.get_childlen() - 1;
+						switch(i){
+							case -1:
+							break;
+							default:
+								//ui_ instance HAVE CHILDREN,
+								//REMOVE THE ui_ instance's CHILDREN.
+								while(i > -1){
+									ui.remove_child(i--);
+								}
+								while(fl[1].indexOf(uid) === -1){
+									fidx = fl[1].indexOf(uid);
+									switch(fidx){
+										case -1:
+										break;
+										default:
+											fl[0].splice(fidx,1);
+											fl[1].splice(fidx,1);
+										break;
+									}
+								}
+								ul.splice(index,l);
+								uidl.splice(index,l);
+							break;
+						}
 					break;
 				}
 			break;
@@ -2621,9 +2664,14 @@ class system_{
 	//drop_ui end
 	//get_ui_list start
 	get_ui_list(){
-		return this.#ui_list;
+		return this.#ui_list.slice();
 	}
 	//get_ui_list end
+	//get_uid_list start
+	get_uid_list(){
+		return this.#uid_list.slice();
+	}
+	//get_uid_list end
 	//Get_UI_List Start index to End index start
 	#GUILSE(sidx, eidx){
 		let ul = this.#ui_list;
@@ -2638,6 +2686,7 @@ class system_{
 		let eeidx;
 		switch(RUN){
 			case true:
+
 				eeidx = eidx + 1;
 				result = ul.slice(sidx,eeidx);
 			break;
@@ -2823,21 +2872,35 @@ class system_{
 	//result : array of ui_ elements
 	//use switch only. do not use if
 	get_pri_ui(){
-		let pl = this.#pri_list;
-		let ul = this.#ui_list;
-		let DATACHK = pl.length > 0 && ul.length;
+		let pl = this.get_pri_list();
+		let ul = this.get_ui_list();
+		let uidl = this.get_uid_list();
+		let DATACHK = Array.isArray(pl) && pl.length > 0
+		&& Array.isArray(ul) && ul.length > 0
+		&& Array.isArray(uidl) && uidl.length > 0;
 		let RUN = true, result;
 		switch(false){
 			case DATACHK:
 				RUN = false;
 			break;
 		}
-		let i, j, k;
+		let i, j, k, idx;
 		let ui_set = [];
 		switch(RUN){
 			case true:
 				//if data check passed,
 				//#uid search on the system_.ui_list based in ui priority array
+				for(i = 0;i < pl.length;i++){
+					idx = uidl.indexOf(pl[i]);
+					switch(idx){
+						case -1:
+						break;
+						default:
+							ui_set.push(ul[idx]);
+						break;
+					}
+				}
+				/*
 				for(i = 0;i < pl.length;i++){
 					for(j = 0;j < ul.length;j++){
 						k = pl[i] === ul[j].getUID();
@@ -2848,6 +2911,7 @@ class system_{
 						}
 					}
 				}
+				*/
 			break;
 		}
 		result = ui_set;
@@ -2886,13 +2950,29 @@ class system_{
 		//array index caculation result variable
 		let i, j;
 		let ul = this.get_ui_list();
+		let uidl = this.get_uid_list();
 		//ui_ instance's #uid
 		let uid_ = array[cat][fidx];
 		switch(RUN){
 			case true:
-				for(i = 0;i < ul.length;i++){
+				i = uidl.indexOf(uid_);
+				switch(i){
+					case -1:
+					break;
+					default:
+						switch(mode){
+						case 0:
+							result0 = i;
+						break;
+						case 1:
+							result1 = ul[i];
+						break;
+						}
+					break;
+				}
+				/*
+				for(i = 0;i < uldl.length;i++){
 				 	j = uid_ === ul[i].getUID();
-				 	//console.log('n is ',n);
 					switch(true){
 						case j:
 							//console.log(ul[i].getUID());
@@ -2908,6 +2988,7 @@ class system_{
 						break;
 					}
 				}
+				*/
 			break;
 		}
 		switch(mode){
@@ -3250,12 +3331,13 @@ class system_{
 	#handle_focus(idx){
 		let pl = this.get_pri_list();
 		let ul = this.get_ui_list();
+		let uidl = this.get_uid_list();
 		let fl = this.get_foc_list();
 		let ta = this.get_top_ar();
 		let DATACHK = Number.isFinite(idx) && idx > -1 && idx < system_.PSL
-			&& isOInst(this.get_psa(idx),'ps')
 			&& Array.isArray(pl) && pl.length > 0
 			&& Array.isArray(ul) && ul.length > 0
+			&& Array.isArray(uidl) && uidl.length > 0
 			&& Array.isArray(fl)
 			&& Array.isArray(ta) && ta.length > 0;
 			//console.log('#handle_focus()\'s NEEDS');
@@ -3267,9 +3349,110 @@ class system_{
 				RUN = false;
 			break;
 		}
+		let ps, pos, PSVAL, fpuid, fuid, pidx, tuidx, luidx, tuid, luid, i, j, tidx, DUPCHK, VAL;
+		let hit, S01, S02, S03, S04, c;
+		switch(RUN){
+			case true:
+				ps = this.get_psa(idx);
+				switch(isOInst(ps,'ps')){
+					case true:
+						fpuid = ps.get_tuid();
+						fuid = ps.get_fuid();
+						pidx = fl[0].indexOf(fpuid);
+						pos = ps.get_curr_pos();
+						PSVAL = Number.isFinite(fpuid) && Number.isFinite(fuid)
+						&& Array.isArray(pos) && Number.isFinite(pos[0])
+						&& Number.isFinite(pos[1]) && Number.isFinite(pidx);
+					break;
+				}
+			break;
+		}
+		switch(PSVAL){
+			case true:
+				for(i = 0;i < pl.length;i++){
+					tuidx = -1;
+					luidx = -1;
+					tidx = ta[0].indexOf(pl[i]);
+					switch(true){
+						//top ui_ instance's ui area is exists
+						case(tidx > -1):
+							//get top ui_ instance's uid and last child of top ui_ instance uid in the #uid_list
+							//#uid_list will be the next;
+							//when register ui to #ui_list,
+							//register uid to #uid_list too
+							//when drop ui in #ui_list,
+							//drop ui in #uid_list too
+							tuidx = uidl.indexOf(ta[0][tidx]);
+							luidx = uidl.indexOf(ta[1][tidx]);
+						break;
+					}
+					switch(true){
+						//top ui_ instance is exists
+						//AND
+						//last child of top ui_ instance is exists
+						case(tuidx > -1 && luidx > -1):
+							j = luidx;
+							while(j > tuidx){
+								hit = this.#hit_test(ul[j],pos[0],pos[1]);
+								switch(hit){
+									case true:
+										tuid = uidl[tuidx];
+										luid = uidl[j];
+										DUPCHK = this.UIDSDCIPSA(luid, tuid);
+										VAL = hit && !DUPCHK && Number.isFinite(tuid)
+										&& Number.isFinite(luid);
+									break;
+								}
+								switch(VAL){
+									case true:
+										//console.log('tuid = ',tuid,'luid = ',luid);
+										ps.set_uid(tuid, luid);
+										this.#update_pri_list(tuid);
+										c = ul[j].get_sum_rect();
+										//position of moment of focused
+										ps.set_fpos(c.x, c.y, pos[0], pos[1]);
+										//console.log(ps.get_fpos());
+										//console.log('\nfpuid = ',fpuid,'fuid = ',fuid,'tuid = ',tuid,'luid = ',luid);
+										S01 = fpuid === -1 && fuid === -1;
+										S02 = fpuid > -1 && fuid > -1 && fpuid === tuid && fuid !== luid;
+										S03 = fpuid > -1 && fuid > -1 && fpuid !== tuid;
+										switch(true){
+											//previous top ui_'s #uid is not exists in PSlot
+											case S01:
+												this.#reg_foc_list(tuid,luid);
+												//console.log(this.get_foc_list());
+											break;
+											//previous top ui_;s #uid is exists in PSlot,
+											//pfuid is equal to tuid, oldfuid is not equal to luid
+											case S02:
+												this.#update_foc_list(pidx,tuid,luid);
+											break;
+											case S03:
+												this.#del_foc_list(pidx)
+												this.#reg_foc_list(tuid,luid);
+											break;
+										}
+										j = -1;
+										VAL = false;
+									break;
+								}
+								j--;
+							}
+						break;
+					}
+					S04 = (Number.isFinite(tuid) && tuid > -1 && Number.isFinite(luid) && luid > -1);
+					switch(S04){
+						case true:
+							i = pl.length;
+						break;
+					}
+				}
+			break;
+		}
+		/*
 		let ps, i, j, k, l, str;
 		let temp, hit, children, last_child, LCVAL,DUPCHK;
-		let lcuid, uid, tuid_, tuid = -1, luid = -1, VAL;
+		let lcuid, uid, tuid_, cuidx, tuid = -1, luid = -1, VAL;
 		let ui_set;
 		//console.log('ui_set = ',ui_set);
 		//oldfuid's idx in fl[1], luid's idx in fl[1]
@@ -3314,55 +3497,64 @@ class system_{
 							//console.log('i, j, uid, tuid_, lcuid');
 							//console.log(i, j, uid, tuid_, lcuid);
 							//console.log('ui_set[' + i + ']\'s last child\'s index of ui_list = ' + j);
+
 							for(k = j;k > tuid_;k--){
 								//hit = this.#hit_test(ul[k],pos[0],pos[1]);
-								hit = this.#hit_test(ul[k],pos[0],pos[1]);
-								switch(hit){
-									case true:
-										luid = ul[k].getUID();
-										tuid = ul[k].get_parent0().getUID();
-										DUPCHK = this.UIDSDCIPSA(luid, tuid);
-										VAL = hit && !DUPCHK;
+								cuidx = uidl.indexOf(k);
+								switch(cuidx){
+									case -1:
 									break;
-								}
-								//console.log('system_.#ui_list[' + k + '] = ');
-								//console.log(ul[k]);
-								switch(VAL){
-									case true:
-										//console.log('luid, tuid, DUPCHK');
-										//console.log(luid, tuid, DUPCHK);
-										//console.log('hit, !DUPCHK, VAL');
-										//console.log(hit, !DUPCHK, VAL);
-										oldfuid = ps.get_fuid();
-										pfuid = ps.get_tuid();
-										pidx = fl[0].indexOf(pfuid);
-										ps.set_uid(tuid,luid);
-										//console.log('tuid = ' + tuid + ', luid = ' + luid);
-										//console.log(oldfuid,pfuid,pidx);
-										S02 = pfuid === -1 && oldfuid === -1;
-										S03 = pfuid > -1 && oldfuid > -1 && pfuid === tuid && oldfuid !== luid;
-										S04 = pfuid > -1 && oldfuid > -1 && pfuid !== tuid;
-										switch(true){
-											//previous top ui_'s #uid is not exists in PSlot
-											case S02:
-												this.#reg_foc_list(tuid,luid);
-											break;
-											//previous top ui_;s #uid is exists in PSlot,
-											//pfuid is equal to tuid, oldfuid is not equal to luid
-											case S03:
-												this.#update_foc_list(pidx,tuid,luid);
-											break;
-											case S04:
-												this.#del_foc_list(pidx)
-												this.#reg_foc_list(tuid,luid);
+									default:
+										hit = this.#hit_test(ul[cuidx],pos[0],pos[1]);
+										switch(hit){
+											case true:
+												console.log('cuidx = ' + cuidx);
+												luid = ul[k].getUID();
+												tuid = ul[k].get_parent0().getUID();
+												DUPCHK = this.UIDSDCIPSA(luid, tuid);
+												VAL = hit && !DUPCHK;
 											break;
 										}
-										this.#update_pri_list(tuid);
-										c = ul[k].get_sum_rect();
-										psc = ps.get_curr_pos();
-										//position of moment of focused
-										ps.set_fpos(c.x, c.y, psc[0], psc[1]);
-										k = -1;
+										//console.log('system_.#ui_list[' + k + '] = ');
+										//console.log(ul[k]);
+										switch(VAL){
+											case true:
+												//console.log('luid, tuid, DUPCHK');
+												//console.log(luid, tuid, DUPCHK);
+												//console.log('hit, !DUPCHK, VAL');
+												//console.log(hit, !DUPCHK, VAL);
+												oldfuid = ps.get_fuid();
+												pfuid = ps.get_tuid();
+												pidx = fl[0].indexOf(pfuid);
+												ps.set_uid(tuid,luid);
+												//console.log('tuid = ' + tuid + ', luid = ' + luid);
+												//console.log(oldfuid,pfuid,pidx);
+												S02 = pfuid === -1 && oldfuid === -1;
+												S03 = pfuid > -1 && oldfuid > -1 && pfuid === tuid && oldfuid !== luid;
+												S04 = pfuid > -1 && oldfuid > -1 && pfuid !== tuid;
+												switch(true){
+													//previous top ui_'s #uid is not exists in PSlot
+													case S02:
+														this.#reg_foc_list(tuid,luid);
+													break;
+													//previous top ui_;s #uid is exists in PSlot,
+													//pfuid is equal to tuid, oldfuid is not equal to luid
+													case S03:
+														this.#update_foc_list(pidx,tuid,luid);
+													break;
+													case S04:
+														this.#del_foc_list(pidx)
+														this.#reg_foc_list(tuid,luid);
+													break;
+												}
+												this.#update_pri_list(tuid);
+												c = ul[k].get_sum_rect();
+												psc = ps.get_curr_pos();
+												//position of moment of focused
+												ps.set_fpos(c.x, c.y, psc[0], psc[1]);
+												k = -1;
+											break;
+										}
 									break;
 								}
 							}
@@ -3399,6 +3591,7 @@ class system_{
 		// 디버그 로그
 		//console.log(str);
 		ui_set = null;
+		*/
 	}
 	//handle_focus end
 	//handle_move start
@@ -3425,10 +3618,15 @@ class system_{
 	#handle_drag(idx){
 		let pl = this.get_pri_list();
 		let fl = this.get_foc_list();
+		let uidl = this.get_uid_list();
+		let ul = this.get_ui_list();
 		let DATACHK = Array.isArray(pl) && pl.length > 0
+			&& Number.isFinite(idx) && idx > -1 && idx < system_.PSL
 			&& isOInst(this.get_psa(idx),'ps') && !(this.get_psa(idx).get_ulock())	
 			&& Array.isArray(fl) && fl.length > 0
-			&& Number.isFinite(idx) && idx > -1 && idx < system_.PSL;
+			&& Array.isArray(uidl) && uidl.length > 0
+			&& Array.isArray(ul) && ul.length > 0
+			&& uidl.length === ul.length;
 		let RUN = true;
 		switch(false){
 			case DATACHK:
@@ -3437,89 +3635,68 @@ class system_{
 		}
 		let ps, ps2, idx_, idx_2;
 		let tuid, luid, fui, i, t1idx, fpui, VAL, TUIDVAL, VAL2;
-		let win, bar, btn, editui, b, c, p, fpos;
+		let win, bar, btn, editui, b, c, p, fpos, str;
+		//NOTE : drag ui_'s infomation search routine is the NEXT;
+		//this data flow belong to set the focus in already
 		switch(RUN){
 			case true:
 				ps = this.get_psa(idx);
-				logtextarea.textContent += 'PSlot\'s id is ' + ps.get_id() + '\n';
 				switch(isOInst(ps,'ps')){
 					case true:
-						//console.log('DRAG is in now');
+						//
 						idx_ = fl[1].indexOf(ps.get_fuid());
-						switch(idx){
-							case -1:
-							break;
-							default:
-								idx_2 = pl.indexOf(fl[0][idx_]);
-							break;
-						}
-						switch(idx_2){
-							case -1:
-							break;
-							default:
-								//NOTE : drag ui_'s infomation search routine is the NEXT;
-								//this data flow belong to set the focus in already
-								//STEP1. get the tuid
-								//tuid = system_.get_foc_list()[0][idx2];
-								tuid = fl[0][idx_2];
-								//STEP2. focused ui(fui) caching
-								//STEP2-1.get focused lower ui_'s #uid
-								luid = fl[1][idx_2];
-							break;
-						}
-						//VAL = Number.isFinite(tuid) && Number.isFinite(luid);
-						VAL = Number.isFinite(tuid) && Number.isFinite(luid);
-						switch(VAL){
-							case true:
-								//STEP2-2.get ui_ instance in the system_.#ui_list
-								//BY
-								//system_.#foc_list
-								//top / focused lower toggle bit [0:top / 1: focused lower]
-								//focused lower ui_'s #uid
-								//return type [0:index / 1:ui_instatnce memory]
-								//fui = system_.find_(system_.foc_list,1,focused lower ui_.#uid,1);
-								fui = this.#find_(fl,1,luid,1);
-								//console.log(fui);
-							break;
-						}
-						switch(isOInst(fui,'ui')){
-							case true:
-								//STEP5. PROCESSING belong to ui_ classification
-								win = isOInst(fui,'winui');
-								bar = isOInst(fui,'bar');
-								btn = isOInst(fui,'btn');
-								editui = isOInst(fui,'editui');
-							break;
-						}
-						//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
-						switch(true){
-							case bar:
-								logtextarea.textContent += this.FLTS();
-								//DRAG TOP UI'S POSITION
-								fpui = fui.get_parent();
-								//console.log(fpui);
-								b = fpui.get_boundery();
-								c = ps.get_curr_pos();
-								//p = ps.get_prev_pos();
-								fpos = ps.get_fpos();
-								//console.log(c[0] - fpos[0],c[1] - fpos[1]);
-								//c = this.#psa[idx].get_curr_pos();
-								//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
-								//current cursor position - position of focused
-								fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
-							break;
-							case win:
-							//DO NOT ANYTHING IN NOW
-							break;
-							case btn:
-							//DO NOT ANYTHING IN NOW
-							break;
-							case editui:
-							//DO NOT ANYTHING IN NOW
-							break;
-						}
 					break;
 				}
+			break;
+		}
+		//STEP 1-2.get focused lower ui_'s #uid
+		switch(true){
+			case(idx_ > -1):
+				str = 'PSlot\'s id is ' + ps.get_id() + '\n';
+				idx_2 = uidl.indexOf(fl[1][idx_]);
+			break;
+		}
+		//STEP 2. focused ui(fui) caching
+		switch(true){
+			case(idx_2 > -1):
+				fui = ul[idx_2];
+			break;
+		}
+		switch(isOInst(fui,'ui')){
+			case true:
+				//STEP5. PROCESSING belong to ui_ classification
+				win = isOInst(fui,'winui');
+				bar = isOInst(fui,'bar');
+				btn = isOInst(fui,'btn');
+				editui = isOInst(fui,'editui');
+			break;
+		}
+		//console.log('win = ' + win + ', bar = ' + bar + ', btn = ' + btn + 'editui = ' + editui);
+		switch(true){
+			case bar:
+				str += this.FLTS();
+				//DRAG TOP UI'S POSITION
+				fpui = fui.get_parent();
+				//console.log(fpui);
+				b = fpui.get_boundery();
+				c = ps.get_curr_pos();
+				//p = ps.get_prev_pos();
+				fpos = ps.get_fpos();
+				//console.log(c[0] - fpos[0],c[1] - fpos[1]);
+				//c = this.#psa[idx].get_curr_pos();
+				//console.log('current position : ' + c[0] + ',' + c[1] + ' / previous position : ' + p[0] + ',' + p[1]);
+				//current cursor position - position of focused
+				fpui.move_to(c[0] - fpos[0],c[1] - fpos[1]);
+				logtextarea.textContent += str;
+			break;
+			case win:
+			//DO NOT ANYTHING IN NOW
+			break;
+			case btn:
+			//DO NOT ANYTHING IN NOW
+			break;
+			case editui:
+			//DO NOT ANYTHING IN NOW
 			break;
 		}
 	}
@@ -4058,10 +4235,11 @@ class system_{
 		//console.log('RUN = ' + RUN + ', RUN2 = ' + RUN2);
 		let str, s1;
 		let ps1, ts1, ms1;
-		let p1, p2, p3, p4, p5, p6, p7, p8, p9, pnmove;
+		let p1, p2, p2_, p3, p4, p5, p6, p7, p8, p9, pnmove;
 		let t1, t2, t3, t4, t5;
 		let m1, m2, m3, m4, m5, m6, m7;
 		let PSTRVAL,TSTRVAL,MSTRVAL;
+		let fuid, DLOCK = false;
 		//console.log('down = ' + down);
 		//console.log('is pointer event ? ' + P);
 		//console.log('is touch event ? ' + T);
@@ -4133,18 +4311,28 @@ class system_{
 									break;
 									//down event
 									case p2:
-										//console.log('pointerDown event');
-										this.#DNURA = true;
-										//console.log('bit = ' + to_bin(bit) + ', bm = ' + to_bin(bm));
-										this.#handle_focus(tidx);
-										switch(S32){
+										switch(PSCHK){
 											case true:
-												PS.set_ulock(false);
+												fuid = PS.get_fuid();
+												DLOCK = Number.isFinite(fuid) && fuid > -1 && fuid < this.get_uid_cnt();
 											break;
 										}
-										//console.log('p2 : ',bm);
-										//console.log('tidx = ' + tidx + ', bit = ' + str);
-										//alert(P + ', ' + e.pointerId);
+										switch(DLOCK){
+											case false:
+												//console.log('pointerDown event');
+												this.#DNURA = true;
+												//console.log('bit = ' + to_bin(bit) + ', bm = ' + to_bin(bm));
+												this.#handle_focus(tidx);
+												switch(S32){
+													case true:
+														PS.set_ulock(false);
+													break;
+												}
+												//console.log('p2 : ',bm);
+												//console.log('tidx = ' + tidx + ', bit = ' + str);
+												//alert(P + ', ' + e.pointerId);
+											break;
+										}
 									break;
 									//drag event
 									//case p1:
@@ -4328,24 +4516,21 @@ class system_{
 	//use switch only. do not use if
 	#RBP(){
 		let pl = this.get_pri_list();
-		let tl = this.get_top_ar(), fl = this.get_foc_list();
-		let DATACHK = Array.isArray(pl) && pl.length > 0
-			&& Array.isArray(tl) && tl.length > 0
-			&& Array.isArray(fl);
+		let tl = this.get_top_ar()
+		let fl = this.get_foc_list();
+		let DATACHK = Array.isArray(pl) && Array.isArray(tl)
+		&& Array.isArray(fl);
 		let RUN = true, result = false;
 		switch(false){
 			case DATACHK:
 				RUN = false;
 			break;
 		}
+		let uidl, sidx, eidx;
 		let hlc = system_.dhlc, fs = system_.dfs, lh = system_.dlh, cw = 1, ch = system_.dlh;
 		//part of system_.#ui_list
 		let poul = [], se_ = [], tidx;
 		let i,j;
-		//**5-STEP pattern (process logic pattern)**
-		//
-		//*5-STEP do not means next STEPs.
-		//
 		//STEP1. index search based on UI priority .
 		//USING top ui_ instance's #uid [in the system_.#pri_list]
 		//TO
@@ -4355,12 +4540,21 @@ class system_{
 		//STEP3 system_.#ui_list.slice(start indx, end index) PUSH TO poul.
 		switch(RUN){
 			case true:
+				uidl = this.get_uid_list();
 				for(i = 0;i < pl.length;i++){
 					tidx = tl[0].indexOf(pl[i]);
 					j = tidx > -1;
 					switch(j){
 						case true:
-							poul.push(this.#GUILSE(tl[0][tidx],tl[1][tidx]));
+							sidx = uidl.indexOf(tl[0][tidx]);
+							switch(sidx){
+								case -1:
+								break;
+								default:
+									eidx = sidx + (tl[1][tidx] - tl[0][tidx]);
+								break;
+							}
+							poul.push(this.#GUILSE(sidx, eidx));
 						break;
 					}
 				}
@@ -4374,14 +4568,8 @@ class system_{
 						break;
 					}
 				}
-		//STEP5. LENGTH CHECK of poul
-				switch(poul.length){
-					case 0:
-					break;
-					default:
-						result = poul;
-					break
-				}
+		//STEP5. SET TO RESULT
+				result = poul;
 			break;
 		}
 		return result;
@@ -5326,9 +5514,9 @@ class ime_{
 		let S3 = (this.#imebm & ime_.inime.public.lcls) === ime_.inime.public.lcls;
 		let S4 = (this.#imebm & ime_.inime.public.lcrs) === ime_.inime.public.lcrs;
 		let S5 = (this.#imebm & ime_.inime.public.rcls) === ime_.inime.public.rcls;
-		let S6 = (this.#imebm & ime_.inime.public.rcrs) === ime_.inime.public.rcrs
-		let S7 = (this.#imebm & ime_.inime.public.m1sp) === ime_.inime.public.m1sp
-		let S8 = (this.#imebm & ime_.inime.public.m2sp) === ime_.inime.public.m2sp
+		let S6 = (this.#imebm & ime_.inime.public.rcrs) === ime_.inime.public.rcrs;
+		let S7 = (this.#imebm & ime_.inime.public.m1sp) === ime_.inime.public.m1sp;
+		let S8 = (this.#imebm & ime_.inime.public.m2sp) === ime_.inime.public.m2sp;
 		let SALL = S1 || S2 || S3 || S4 || S5 || S6 || S7 || S8;
 		let result = false;
 		switch(true){
@@ -7554,8 +7742,7 @@ class renderer_{
 	//set_rui start
 	//use switch only. do not use if
 	set_rui(ul){
-		let DATACHK = Array.isArray(ul) && ul.length > 0
-		&& Array.isArray(ul[0]) && ul[0].length > 0;
+		let DATACHK = Array.isArray(ul);
 		let RUN = true;
 		switch(false){
 			case DATACHK:
@@ -7572,11 +7759,7 @@ class renderer_{
 	//Is Same Pri_Lists start
 	//use switch only. do not use if
 	ISPL(ul){
-		let pl = this.#pl;
-		let DATACHK = this.#sys.GURUIL()
-		&& pl && pl.length > 0
-		&& ul && ul.length > 0
-		&& Array.isArray(ul[0]) && ul[0].length > 0;
+		let DATACHK = this.#sys.GURUIL() && Array.isArray(ul);
 		let RUN = true;
 		switch(false){
 			case DATACHK:
@@ -7586,8 +7769,7 @@ class renderer_{
 		let issame;
 		switch(RUN){
 			case true:
-				//console.log('pl', pl, 'pl0', pl0);
-				//console.log('issame = ' + issame);
+				//console.log('ISPL IS RUNNING');
 				this.set_rui(ul);
 				this.#sys.SURUIL(false);
 			break;
@@ -7598,8 +7780,7 @@ class renderer_{
 	//update to rendering proccess must need to ui list
 	//use switch only. do not use if
 	update_list(ul){
-		let DATACHK = ul && ul.length > 0
-		&& Array.isArray(ul[0]) && ul[0].length > 0;
+		let DATACHK = Array.isArray(ul);
 		let RUN = true;
 		//ui priority of ul
 		//0 : top
@@ -7609,6 +7790,7 @@ class renderer_{
 				RUN = false;
 			break;
 		}
+		//console.log(ul);
 		switch(RUN){
 			case true:
 				//console.log(ul.length);
@@ -7620,8 +7802,7 @@ class renderer_{
 	//use switch only. do not use if
 	rendering_(){
 		let rui = this.#rui, ime = this.#ime, sys = this.#sys;
-		let DATACHK = Array.isArray(rui) && rui.length > 0
-		&& Array.isArray(rui[0]) && rui[0].length > 0;
+		let DATACHK = Array.isArray(rui)
 		let RUN = true;
 		switch(false){
 			case DATACHK:
